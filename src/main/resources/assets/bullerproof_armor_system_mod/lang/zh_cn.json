@@ -1,0 +1,80 @@
+{
+  "key.category.bullerproof_armor_system_mod": "甲弹系统",
+  "key.bullerproof_armor_system_mod.open_config": "打开配置界面",
+
+  "bullerproof_armor_system_mod.config.title": "甲弹系统配置",
+  "bullerproof_armor_system_mod.config.shortcut": "快捷键",
+  "bullerproof_armor_system_mod.config.armor": "护甲等级配置",
+  "bullerproof_armor_system_mod.config.ammo": "弹药等级配置",
+  "bullerproof_armor_system_mod.config.weapon": "武器等级配置",
+  "bullerproof_armor_system_mod.config.hud": "HUD位置设置",
+
+  "bullerproof_armor_system_mod.config.armor.title": "护甲等级配置",
+  "bullerproof_armor_system_mod.config.ammo.title": "弹药等级配置",
+  "bullerproof_armor_system_mod.config.weapon.title": "武器等级配置",
+
+  "bullerproof_armor_system_mod.config.holding": "手持物品",
+  "bullerproof_armor_system_mod.config.no_item": "无物品",
+  "bullerproof_armor_system_mod.config.ammo_id": "弹药ID",
+  "bullerproof_armor_system_mod.config.current_tier": "当前等级",
+  "bullerproof_armor_system_mod.config.not_configured": "未配置",
+  "bullerproof_armor_system_mod.config.input_tier": "输入等级",
+  "bullerproof_armor_system_mod.config.input_hint": "1-6",
+
+  "bullerproof_armor_system_mod.config.set": "设置",
+  "bullerproof_armor_system_mod.config.remove": "移除",
+  "bullerproof_armor_system_mod.config.list": "列表",
+
+  "bullerproof_armor_system_mod.config.input_error_empty": "请输入等级",
+  "bullerproof_armor_system_mod.config.input_error_range": "等级必须在1-6之间",
+  "bullerproof_armor_system_mod.config.input_error_number": "请输入有效数字",
+  "bullerproof_armor_system_mod.config.hold_armor": "请手持要配置的护甲",
+  "bullerproof_armor_system_mod.config.hold_ammo": "请手持要配置的弹药",
+  "bullerproof_armor_system_mod.config.hold_weapon": "请手持要配置的武器",
+  "bullerproof_armor_system_mod.config.set_success": "已设置 %s 为 Lv%d",
+  "bullerproof_armor_system_mod.config.set_failed": "设置失败",
+  "bullerproof_armor_system_mod.config.remove_success": "已移除 %s 的配置",
+  "bullerproof_armor_system_mod.config.remove_failed": "移除失败",
+  "bullerproof_armor_system_mod.config.list_title": "已配置列表",
+  "bullerproof_armor_system_mod.config.list_empty": "暂无配置",
+
+  "bullerproof_armor_system_mod.tooltip.ammo_tier": "弹药等级: §eLv%s",
+  "bullerproof_armor_system_mod.tooltip.ammo_damage_bonus": "穿透加成: §6+%s%% 伤害",
+  "bullerproof_armor_system_mod.tooltip.armor_tier": "护甲等级: §eLv%s",
+  "bullerproof_armor_system_mod.tooltip.armor_protection": "防弹效果: §a抵挡 %s%% 伤害",
+  "bullerproof_armor_system_mod.tooltip.weapon_tier": "武器等级: §eLv%s",
+  "bullerproof_armor_system_mod.tooltip.weapon_damage_bonus": "伤害加成: §6+%s%% 伤害",
+
+  "armortier.tier.name.1": "一级护甲",
+  "armortier.tier.name.2": "二级护甲",
+  "armortier.tier.name.3": "三级护甲",
+  "armortier.tier.name.4": "四级护甲",
+  "armortier.tier.name.5": "五级护甲",
+  "armortier.tier.name.6": "六级护甲",
+
+  "ammotier.tier.name.1": "一级弹药",
+  "ammotier.tier.name.2": "二级弹药",
+  "ammotier.tier.name.3": "三级弹药",
+  "ammotier.tier.name.4": "四级弹药",
+  "ammotier.tier.name.5": "五级弹药",
+  "ammotier.tier.name.6": "六级弹药",
+
+  "weapontier.tier.name.1": "一级武器",
+  "weapontier.tier.name.2": "二级武器",
+  "weapontier.tier.name.3": "三级武器",
+  "weapontier.tier.name.4": "四级武器",
+  "weapontier.tier.name.5": "五级武器",
+  "weapontier.tier.name.6": "六级武器",
+
+  "armortier.command.hand.empty": "§c手中没有物品",
+  "armortier.command.set.failed": "§c设置失败",
+  "armortier.command.remove.failed": "§c移除失败",
+
+  "ammotier.command.hand.empty": "§c手中没有物品",
+  "ammotier.command.set.failed": "§c设置失败",
+  "ammotier.command.remove.failed": "§c移除失败",
+
+  "weapontier.command.hand.empty": "§c手中没有物品",
+  "weapontier.command.set.failed": "§c设置失败",
+  "weapontier.command.remove.failed": "§c移除失败"
+}

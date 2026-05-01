@@ -1,0 +1,80 @@
+{
+  "key.category.bullerproof_armor_system_mod": "Ballistic Armor System",
+  "key.bullerproof_armor_system_mod.open_config": "Open Config Screen",
+
+  "bullerproof_armor_system_mod.config.title": "BAS Config",
+  "bullerproof_armor_system_mod.config.shortcut": "Shortcut",
+  "bullerproof_armor_system_mod.config.armor": "Armor Tier Config",
+  "bullerproof_armor_system_mod.config.ammo": "Ammo Tier Config",
+  "bullerproof_armor_system_mod.config.weapon": "Weapon Tier Config",
+  "bullerproof_armor_system_mod.config.hud": "HUD Position",
+
+  "bullerproof_armor_system_mod.config.armor.title": "Armor Tier Config",
+  "bullerproof_armor_system_mod.config.ammo.title": "Ammo Tier Config",
+  "bullerproof_armor_system_mod.config.weapon.title": "Weapon Tier Config",
+
+  "bullerproof_armor_system_mod.config.holding": "Holding",
+  "bullerproof_armor_system_mod.config.no_item": "No Item",
+  "bullerproof_armor_system_mod.config.ammo_id": "Ammo ID",
+  "bullerproof_armor_system_mod.config.current_tier": "Current Tier",
+  "bullerproof_armor_system_mod.config.not_configured": "Not Configured",
+  "bullerproof_armor_system_mod.config.input_tier": "Input Tier",
+  "bullerproof_armor_system_mod.config.input_hint": "1-6",
+
+  "bullerproof_armor_system_mod.config.set": "Set",
+  "bullerproof_armor_system_mod.config.remove": "Remove",
+  "bullerproof_armor_system_mod.config.list": "List",
+
+  "bullerproof_armor_system_mod.config.input_error_empty": "Please enter a tier",
+  "bullerproof_armor_system_mod.config.input_error_range": "Tier must be between 1-6",
+  "bullerproof_armor_system_mod.config.input_error_number": "Please enter a valid number",
+  "bullerproof_armor_system_mod.config.hold_armor": "Hold the armor to configure",
+  "bullerproof_armor_system_mod.config.hold_ammo": "Hold the ammo to configure",
+  "bullerproof_armor_system_mod.config.hold_weapon": "Hold the weapon to configure",
+  "bullerproof_armor_system_mod.config.set_success": "Set %s to Lv%d",
+  "bullerproof_armor_system_mod.config.set_failed": "Set failed",
+  "bullerproof_armor_system_mod.config.remove_success": "Removed %s configuration",
+  "bullerproof_armor_system_mod.config.remove_failed": "Remove failed",
+  "bullerproof_armor_system_mod.config.list_title": "Configured List",
+  "bullerproof_armor_system_mod.config.list_empty": "No configuration",
+
+  "bullerproof_armor_system_mod.tooltip.ammo_tier": "Ammo Tier: §eLv%s",
+  "bullerproof_armor_system_mod.tooltip.ammo_damage_bonus": "Penetration Bonus: §6+%s%% Damage",
+  "bullerproof_armor_system_mod.tooltip.armor_tier": "Armor Tier: §eLv%s",
+  "bullerproof_armor_system_mod.tooltip.armor_protection": "Ballistic Protection: §aBlocks %s%% Damage",
+  "bullerproof_armor_system_mod.tooltip.weapon_tier": "Weapon Tier: §eLv%s",
+  "bullerproof_armor_system_mod.tooltip.weapon_damage_bonus": "Damage Bonus: §6+%s%% Damage",
+
+  "armortier.tier.name.1": "Tier 1 Armor",
+  "armortier.tier.name.2": "Tier 2 Armor",
+  "armortier.tier.name.3": "Tier 3 Armor",
+  "armortier.tier.name.4": "Tier 4 Armor",
+  "armortier.tier.name.5": "Tier 5 Armor",
+  "armortier.tier.name.6": "Tier 6 Armor",
+
+  "ammotier.tier.name.1": "Tier 1 Ammo",
+  "ammotier.tier.name.2": "Tier 2 Ammo",
+  "ammotier.tier.name.3": "Tier 3 Ammo",
+  "ammotier.tier.name.4": "Tier 4 Ammo",
+  "ammotier.tier.name.5": "Tier 5 Ammo",
+  "ammotier.tier.name.6": "Tier 6 Ammo",
+
+  "weapontier.tier.name.1": "Tier 1 Weapon",
+  "weapontier.tier.name.2": "Tier 2 Weapon",
+  "weapontier.tier.name.3": "Tier 3 Weapon",
+  "weapontier.tier.name.4": "Tier 4 Weapon",
+  "weapontier.tier.name.5": "Tier 5 Weapon",
+  "weapontier.tier.name.6": "Tier 6 Weapon",
+
+  "armortier.command.hand.empty": "§cNo item in hand",
+  "armortier.command.set.failed": "§cSet failed",
+  "armortier.command.remove.failed": "§cRemove failed",
+
+  "ammotier.command.hand.empty": "§cNo item in hand",
+  "ammotier.command.set.failed": "§cSet failed",
+  "ammotier.command.remove.failed": "§cRemove failed",
+
+  "weapontier.command.hand.empty": "§cNo item in hand",
+  "weapontier.command.set.failed": "§cSet failed",
+  "weapontier.command.remove.failed": "§cRemove failed"
+}
