@@ -81,6 +81,7 @@ public class BallisticUtils {
     public static int getAmmoTierFromItem(ItemStack stack) {
         if (stack.isEmpty()) return 0;
 
+        // 优先检查NBT中的AmmoId
         String ammoId = getAmmoIdFromNBT(stack);
         if (ammoId != null && !ammoId.isEmpty()) {
             syncAmmoIdToConfig(ammoId, stack);
@@ -88,21 +89,21 @@ public class BallisticUtils {
             if (tier > 0) {
                 return tier;
             }
-            if (ammoId.startsWith("tacz:")) {
-                return 1;
-            }
         }
 
+        // 检查物品本身是否配置了弹药等级
         ResourceLocation itemId = ForgeRegistries.ITEMS.getKey(stack.getItem());
         if (itemId == null) return 0;
         String id = itemId.toString();
 
-        int configTier = AmmoTierManager.getAmmoTier(id);
-        if (configTier > 0) {
-            return configTier;
+        // 先检查TACZ类弹药（内置默认值）
+        if (id.startsWith("tacz:")) {
+            int tier = AmmoTierManager.getAmmoTier(id);
+            if (tier > 0) return tier;
+            return 1; // TACZ弹药默认1级
         }
 
-        return 0;
+        return AmmoTierManager.getAmmoTier(id);
     }
 
     public static int getArmorTierFromItem(ItemStack stack) {
