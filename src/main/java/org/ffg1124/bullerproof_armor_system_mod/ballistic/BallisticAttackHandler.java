@@ -3,13 +3,16 @@ package org.ffg1124.bullerproof_armor_system_mod.ballistic;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.ffg1124.bullerproof_armor_system_mod.Bullerproof_armor_system_mod;
+import org.ffg1124.bullerproof_armor_system_mod.command.AmmoTierManager;
 import org.ffg1124.bullerproof_armor_system_mod.command.ArmorTierManager;
+import org.ffg1124.bullerproof_armor_system_mod.command.GunTierManager;
 
 @Mod.EventBusSubscriber(modid = Bullerproof_armor_system_mod.MODID)
 public class BallisticAttackHandler {
@@ -32,6 +35,23 @@ public class BallisticAttackHandler {
             );
         }
 
+        // ========== 获取攻击等级（弹药等级优先，枪械等级次之） ==========
+        int attackTier = getAttackTier(source);
+
+        // 应用攻击加成
+        float damageAfterBonus = originalDamage;
+        if (attackTier > 0) {
+            float attackBonus = 1.0f + (attackTier - 1) * 0.2f;
+            damageAfterBonus = originalDamage * attackBonus;
+            if (DEBUG) {
+                Bullerproof_armor_system_mod.getLogger().info(
+                        "攻击加成: 等级={}, 倍率={}, 伤害={} -> {}",
+                        attackTier, attackBonus, originalDamage, damageAfterBonus
+                );
+            }
+            event.setAmount(damageAfterBonus);
+        }
+
         // 确定击中部位
         String bodyPart = determineHitBodyPart(source, entity);
         ItemStack armorPiece = getArmorForBodyPart(entity, bodyPart);
@@ -46,26 +66,90 @@ public class BallisticAttackHandler {
         // 检查护甲是否已损坏（耐久 >= 最大耐久）
         if (isArmorBroken(armorPiece)) {
             if (DEBUG) Bullerproof_armor_system_mod.getLogger().info("护甲已损坏，不再提供减伤");
-            return; // 损坏的护甲不提供减伤（也可改为极低减伤，见下方注释）
+            return;
         }
 
-        // 计算减伤率
+        // 计算减伤率（考虑穿透）
         float reduction = getArmorDamageReduction(armorTier);
-        float newDamage = originalDamage * (1.0f - reduction);
+        float penetration = getPenetration(attackTier, armorTier);
+        float actualReduction = reduction * (1.0f - penetration);
+        float newDamage = damageAfterBonus * (1.0f - actualReduction);
         newDamage = Math.max(0, newDamage);
 
         if (DEBUG) {
             Bullerproof_armor_system_mod.getLogger().info(
-                    "护甲减伤: 等级={}, 减伤={}%, 原伤害={}, 新伤害={}",
-                    armorTier, String.format("%.0f", reduction * 100), originalDamage, newDamage
+                    "护甲减伤: 护甲等级={}, 攻击等级={}, 减伤率={}%, 穿透={}%, 实际减伤={}%, 新伤害={}",
+                    armorTier, attackTier,
+                    String.format("%.0f", reduction * 100),
+                    String.format("%.0f", penetration * 100),
+                    String.format("%.0f", actualReduction * 100),
+                    String.format("%.1f", newDamage)
             );
         }
 
-        // 应用减伤后的伤害
         event.setAmount(newDamage);
 
-        // 扣除耐久（基于原始伤害或减免的伤害量，可调整）
+        // 扣除耐久（基于原始伤害）
         damageArmorPiece(armorPiece, originalDamage, armorTier, entity);
+    }
+
+    /**
+     * 获取攻击等级（弹药等级优先，枪械等级次之）
+     */
+    private static int getAttackTier(DamageSource source) {
+        // 1. 从弹射物获取弹药等级
+        if (source.getDirectEntity() instanceof Projectile projectile) {
+            var nbt = projectile.getPersistentData();
+            if (nbt.contains("TaczAmmoId")) {
+                String ammoId = nbt.getString("TaczAmmoId");
+                int tier = AmmoTierManager.getAmmoTier(ammoId);
+                if (tier > 0) return tier;
+            }
+            if (nbt.contains("WeaponTier")) {
+                return nbt.getInt("WeaponTier");
+            }
+        }
+
+        // 2. 从攻击者手中获取弹药/枪械等级
+        if (source.getEntity() instanceof LivingEntity attacker) {
+            ItemStack mainHand = attacker.getMainHandItem();
+            if (!mainHand.isEmpty()) {
+                String itemId = ForgeRegistries.ITEMS.getKey(mainHand.getItem()).toString();
+
+                // 优先检查弹药等级
+                int ammoTier = AmmoTierManager.getAmmoTier(itemId);
+                if (ammoTier > 0) return ammoTier;
+
+                // 检查枪械等级（GunId）
+                if (itemId.startsWith("tacz:")) {
+                    int gunTier = GunTierManager.getGunTier(itemId);
+                    if (gunTier > 0) {
+                        if (DEBUG) {
+                            Bullerproof_armor_system_mod.getLogger().info("枪械等级: {} -> {}级", itemId, gunTier);
+                        }
+                        return gunTier;
+                    }
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * 计算穿透因子
+     */
+    private static float getPenetration(int attackTier, int armorTier) {
+        if (attackTier <= 0 || armorTier <= 0) return 0f;
+
+        int diff = attackTier - armorTier;
+
+        if (diff >= 3) return 0.8f;
+        if (diff == 2) return 0.6f;
+        if (diff == 1) return 0.4f;
+        if (diff == 0) return 0.2f;
+        if (diff == -1) return 0.1f;
+        return 0f;
     }
 
     /**

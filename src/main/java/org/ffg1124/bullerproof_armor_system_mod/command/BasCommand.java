@@ -130,6 +130,36 @@ public class BasCommand {
                                 .then(Commands.argument("武器ID", StringArgumentType.string())
                                         .executes(BasCommand::weaponUnlock))))
 
+                // ==================== 枪械命令（GunId）====================
+                .then(Commands.literal("gun")
+                        .then(Commands.literal("hand")
+                                .executes(BasCommand::gunHand))
+                        .then(Commands.literal("set")
+                                .then(Commands.argument("等级", IntegerArgumentType.integer(1, 6))
+                                        .executes(BasCommand::gunSetHand)))
+                        .then(Commands.literal("setId")
+                                .then(Commands.argument("枪械ID", StringArgumentType.string())
+                                        .then(Commands.argument("等级", IntegerArgumentType.integer(1, 6))
+                                                .executes(BasCommand::gunSetId))))
+                        .then(Commands.literal("get")
+                                .then(Commands.argument("枪械ID", StringArgumentType.string())
+                                        .executes(BasCommand::gunGet)))
+                        .then(Commands.literal("remove")
+                                .then(Commands.argument("枪械ID", StringArgumentType.string())
+                                        .executes(BasCommand::gunRemove)))
+                        .then(Commands.literal("list")
+                                .executes(BasCommand::gunList))
+                        .then(Commands.literal("clear")
+                                .executes(BasCommand::gunClear))
+                        .then(Commands.literal("reset")
+                                .executes(BasCommand::gunReset))
+                        .then(Commands.literal("lock")
+                                .then(Commands.argument("枪械ID", StringArgumentType.string())
+                                        .executes(BasCommand::gunLock)))
+                        .then(Commands.literal("unlock")
+                                .then(Commands.argument("枪械ID", StringArgumentType.string())
+                                        .executes(BasCommand::gunUnlock))))
+
                 // ==================== 调试命令 ====================
                 .then(Commands.literal("debug")
                         .executes(BasCommand::debugSelf)
@@ -558,6 +588,140 @@ public class BasCommand {
         return 1;
     }
 
+    // ==================== 枪械命令实现（GunId）====================
+
+    private static int gunHand(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        Player player = ctx.getSource().getPlayerOrException();
+        ItemStack handItem = player.getMainHandItem();
+
+        if (handItem.isEmpty()) {
+            ctx.getSource().sendFailure(Component.literal("§c手持物品为空"));
+            return 0;
+        }
+
+        String gunId = ForgeRegistries.ITEMS.getKey(handItem.getItem()).toString();
+        if (!gunId.startsWith("tacz:")) {
+            ctx.getSource().sendFailure(Component.literal("§c手持物品不是TACZ枪械"));
+            return 0;
+        }
+
+        int tier = GunTierManager.getGunTier(gunId);
+        boolean isLocked = GunTierManager.isLocked(gunId);
+
+        ctx.getSource().sendSuccess(() -> Component.literal("§6=== 枪械信息 ==="), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("§7名称: §e" + handItem.getDisplayName().getString()), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("§7GunId: §8" + gunId), false);
+
+        if (tier > 0) {
+            float bonus = (tier - 1) * 20;
+            ctx.getSource().sendSuccess(() -> Component.literal("§7等级: §aLv" + tier + " §7(" + getTierName("guntier", tier) + ")" + (isLocked ? " §c[锁定]" : "")), false);
+            ctx.getSource().sendSuccess(() -> Component.literal("§7伤害加成: §6+" + (int)bonus + "%"), false);
+        } else {
+            ctx.getSource().sendSuccess(() -> Component.literal("§7等级: §c未配置"), false);
+        }
+
+        ctx.getSource().sendSuccess(() -> Component.literal("§7设置: §e/bas gun set <等级>"), false);
+        return 1;
+    }
+
+    private static int gunSetHand(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        Player player = ctx.getSource().getPlayerOrException();
+        ItemStack handItem = player.getMainHandItem();
+        int tier = IntegerArgumentType.getInteger(ctx, "等级");
+
+        if (handItem.isEmpty()) {
+            ctx.getSource().sendFailure(Component.literal("§c手持物品为空"));
+            return 0;
+        }
+
+        String gunId = ForgeRegistries.ITEMS.getKey(handItem.getItem()).toString();
+        if (!gunId.startsWith("tacz:")) {
+            ctx.getSource().sendFailure(Component.literal("§c手持物品不是TACZ枪械"));
+            return 0;
+        }
+
+        if (GunTierManager.setGunTier(gunId, tier)) {
+            ctx.getSource().sendSuccess(() -> Component.literal("§a已设置 " + handItem.getDisplayName().getString() + " 为 Lv" + tier), true);
+        } else {
+            ctx.getSource().sendFailure(Component.literal("§c设置失败（可能已锁定）"));
+        }
+        return 1;
+    }
+
+    private static int gunSetId(CommandContext<CommandSourceStack> ctx) {
+        String gunId = StringArgumentType.getString(ctx, "枪械ID");
+        int tier = IntegerArgumentType.getInteger(ctx, "等级");
+
+        if (GunTierManager.setGunTier(gunId, tier)) {
+            ctx.getSource().sendSuccess(() -> Component.literal("§a已设置 " + gunId + " 为 Lv" + tier), true);
+        } else {
+            ctx.getSource().sendFailure(Component.literal("§c设置失败（ID无效或已锁定）"));
+        }
+        return 1;
+    }
+
+    private static int gunGet(CommandContext<CommandSourceStack> ctx) {
+        String gunId = StringArgumentType.getString(ctx, "枪械ID");
+        int tier = GunTierManager.getGunTier(gunId);
+        boolean isLocked = GunTierManager.isLocked(gunId);
+
+        ctx.getSource().sendSuccess(() -> Component.literal("§7" + gunId + " 等级: " + (tier > 0 ? "§aLv" + tier : "§c未配置") + (isLocked ? " §c[锁定]" : "")), false);
+        return 1;
+    }
+
+    private static int gunRemove(CommandContext<CommandSourceStack> ctx) {
+        String gunId = StringArgumentType.getString(ctx, "枪械ID");
+
+        if (GunTierManager.removeGunTier(gunId)) {
+            ctx.getSource().sendSuccess(() -> Component.literal("§a已移除 " + gunId + " 的配置"), true);
+        } else {
+            ctx.getSource().sendFailure(Component.literal("§c移除失败（可能已锁定或不存在）"));
+        }
+        return 1;
+    }
+
+    private static int gunList(CommandContext<CommandSourceStack> ctx) {
+        var configured = GunTierManager.getAllConfigured();
+
+        ctx.getSource().sendSuccess(() -> Component.literal("§6=== 已配置枪械列表 ==="), false);
+
+        if (configured.isEmpty()) {
+            ctx.getSource().sendSuccess(() -> Component.literal("§7暂无配置"), false);
+        } else {
+            for (var entry : configured.entrySet()) {
+                ctx.getSource().sendSuccess(() -> Component.literal("§e" + entry.getKey() + " §7-> §aLv" + entry.getValue()), false);
+            }
+            ctx.getSource().sendSuccess(() -> Component.literal("§7共 " + configured.size() + " 个配置"), false);
+        }
+        return 1;
+    }
+
+    private static int gunClear(CommandContext<CommandSourceStack> ctx) {
+        GunTierManager.clearAll();
+        ctx.getSource().sendSuccess(() -> Component.literal("§a已清空所有枪械配置"), true);
+        return 1;
+    }
+
+    private static int gunReset(CommandContext<CommandSourceStack> ctx) {
+        GunTierManager.resetAll();
+        ctx.getSource().sendSuccess(() -> Component.literal("§a已重置所有枪械配置"), true);
+        return 1;
+    }
+
+    private static int gunLock(CommandContext<CommandSourceStack> ctx) {
+        String gunId = StringArgumentType.getString(ctx, "枪械ID");
+        GunTierManager.lock(gunId);
+        ctx.getSource().sendSuccess(() -> Component.literal("§a已锁定 " + gunId), true);
+        return 1;
+    }
+
+    private static int gunUnlock(CommandContext<CommandSourceStack> ctx) {
+        String gunId = StringArgumentType.getString(ctx, "枪械ID");
+        GunTierManager.unlock(gunId);
+        ctx.getSource().sendSuccess(() -> Component.literal("§a已解锁 " + gunId), true);
+        return 1;
+    }
+
     // ==================== 调试命令实现 ====================
 
     private static int debugSelf(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
@@ -629,8 +793,9 @@ public class BasCommand {
         boolean armorOk = ArmorTierManager.reloadFromFile();
         boolean ammoOk = AmmoTierManager.reloadFromFile();
         boolean weaponOk = WeaponTierManager.reloadFromFile();
+        boolean gunOk = GunTierManager.reloadFromFile();
 
-        if (armorOk && ammoOk && weaponOk) {
+        if (armorOk && ammoOk && weaponOk && gunOk) {
             ctx.getSource().sendSuccess(() -> Component.literal("§a已重载所有配置"), true);
         } else {
             ctx.getSource().sendSuccess(() -> Component.literal("§e配置重载完成（部分文件可能不存在）"), true);
@@ -642,6 +807,7 @@ public class BasCommand {
         ArmorTierManager.saveToFile();
         AmmoTierManager.saveToFile();
         WeaponTierManager.saveToFile();
+        GunTierManager.saveToFile();
         ctx.getSource().sendSuccess(() -> Component.literal("§a已保存所有配置"), true);
         return 1;
     }
@@ -651,6 +817,7 @@ public class BasCommand {
         ctx.getSource().sendSuccess(() -> Component.literal("§7护甲: §e" + ArmorTierManager.getConfigPath()), false);
         ctx.getSource().sendSuccess(() -> Component.literal("§7弹药: §e" + AmmoTierManager.getConfigPath()), false);
         ctx.getSource().sendSuccess(() -> Component.literal("§7武器: §e" + WeaponTierManager.getConfigPath()), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("§7枪械: §e" + GunTierManager.getConfigPath()), false);
         return 1;
     }
 
@@ -666,6 +833,8 @@ public class BasCommand {
         ctx.getSource().sendSuccess(() -> Component.literal("  §e/bas armor setId <护甲ID> <等级> §7- 设置指定护甲"), false);
         ctx.getSource().sendSuccess(() -> Component.literal("  §e/bas armor list §7- 列出所有已配置护甲"), false);
         ctx.getSource().sendSuccess(() -> Component.literal("  §e/bas armor remove <护甲ID> §7- 移除护甲配置"), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("  §e/bas armor lock <护甲ID> §7- 锁定护甲配置"), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("  §e/bas armor unlock <护甲ID> §7- 解锁护甲配置"), false);
 
         ctx.getSource().sendSuccess(() -> Component.literal(""), false);
         ctx.getSource().sendSuccess(() -> Component.literal("§6【弹药命令】"), false);
@@ -673,6 +842,7 @@ public class BasCommand {
         ctx.getSource().sendSuccess(() -> Component.literal("  §e/bas ammo set <等级> §7- 设置手持弹药等级"), false);
         ctx.getSource().sendSuccess(() -> Component.literal("  §e/bas ammo setId <弹药ID> <等级> §7- 设置指定弹药"), false);
         ctx.getSource().sendSuccess(() -> Component.literal("  §e/bas ammo list §7- 列出所有已配置弹药"), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("  §e/bas ammo remove <弹药ID> §7- 移除弹药配置"), false);
 
         ctx.getSource().sendSuccess(() -> Component.literal(""), false);
         ctx.getSource().sendSuccess(() -> Component.literal("§6【武器命令】"), false);
@@ -680,6 +850,15 @@ public class BasCommand {
         ctx.getSource().sendSuccess(() -> Component.literal("  §e/bas weapon set <等级> §7- 设置手持武器等级"), false);
         ctx.getSource().sendSuccess(() -> Component.literal("  §e/bas weapon setId <武器ID> <等级> §7- 设置指定武器"), false);
         ctx.getSource().sendSuccess(() -> Component.literal("  §e/bas weapon list §7- 列出所有已配置武器"), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("  §e/bas weapon remove <武器ID> §7- 移除武器配置"), false);
+
+        ctx.getSource().sendSuccess(() -> Component.literal(""), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("§6【枪械命令】（TACZ GunId）"), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("  §e/bas gun hand §7- 查看手持枪械等级"), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("  §e/bas gun set <等级> §7- 设置手持枪械等级"), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("  §e/bas gun setId <枪械ID> <等级> §7- 设置指定枪械"), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("  §e/bas gun list §7- 列出所有已配置枪械"), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("  §e/bas gun remove <枪械ID> §7- 移除枪械配置"), false);
 
         ctx.getSource().sendSuccess(() -> Component.literal(""), false);
         ctx.getSource().sendSuccess(() -> Component.literal("§6【调试命令】"), false);
