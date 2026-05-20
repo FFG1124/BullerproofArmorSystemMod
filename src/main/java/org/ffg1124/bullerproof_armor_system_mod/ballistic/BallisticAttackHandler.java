@@ -121,14 +121,12 @@ public class BallisticAttackHandler {
                 if (ammoTier > 0) return ammoTier;
 
                 // 检查枪械等级（GunId）
-                if (itemId.startsWith("tacz:")) {
-                    int gunTier = GunTierManager.getGunTier(itemId);
-                    if (gunTier > 0) {
-                        if (DEBUG) {
-                            Bullerproof_armor_system_mod.getLogger().info("枪械等级: {} -> {}级", itemId, gunTier);
-                        }
-                        return gunTier;
+                int gunTier = GunTierManager.getGunTier(itemId);
+                if (gunTier > 0) {
+                    if (DEBUG) {
+                        Bullerproof_armor_system_mod.getLogger().info("武器等级: {} -> {}级", itemId, gunTier);
                     }
+                    return gunTier;
                 }
             }
         }

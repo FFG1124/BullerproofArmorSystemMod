@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -13,8 +14,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.registries.ForgeRegistries;
+
 import org.ffg1124.bullerproof_armor_system_mod.Bullerproof_armor_system_mod;
 import org.ffg1124.bullerproof_armor_system_mod.ballistic.BallisticUtils;
 
@@ -174,6 +179,68 @@ public class BasCommand {
                 .then(Commands.literal("path")
                         .executes(BasCommand::showPaths))
         );
+    }
+
+    /**
+     * 判断是否为远程武器
+     */
+    private static boolean isRangedWeapon(ItemStack stack) {
+        if (stack.isEmpty()) return false;
+
+        // 获取物品ID
+        String itemId = ForgeRegistries.ITEMS.getKey(stack.getItem()).toString();
+
+        // ========== 直接通过模组命名空间判断 ==========
+        // 所有模组的枪械，直接通过模组ID识别
+        String[] gunModNamespaces = {
+                "tacz",           // 永恒枪械工坊
+                "pillagers_gun",  // 掠夺者的枪（有下划线）
+                "pointblank",     // Vic's Point Blank
+                "pb",             // Point Blank 缩写
+                "cgm",            // MrCrayfish's Gun Mod
+                "mrw",            // MrCrayfish's Gun Mod
+                "techguns",       // Techguns
+                "flansmod",       // Flan's Mod
+                "modernwarfare",  // Modern Warfare
+                "mw",             // Modern Warfare 缩写
+                "vicguns",        // Vic's Guns
+                "scguns",         // Scorpio's Gun Mod
+                "thc2",           // THC2
+                "gun",            // 通用枪械
+                "firearm",        // 通用火器
+                "weapon"          // 通用武器
+        };
+
+        // 获取命名空间（第一个冒号之前的部分）
+        String namespace = itemId.split(":")[0];
+
+        for (String ns : gunModNamespaces) {
+            if (namespace.equals(ns)) {
+                return true;
+            }
+        }
+
+        // ========== 原版远程武器 ==========
+        if (stack.getItem() instanceof BowItem) return true;
+        if (stack.getItem() instanceof CrossbowItem) return true;
+        if (stack.is(Items.TRIDENT)) return true;
+        if (stack.is(Items.SNOWBALL)) return true;
+        if (stack.is(Items.EGG)) return true;
+        if (stack.is(Items.ENDER_PEARL)) return true;
+        if (stack.is(Items.FISHING_ROD)) return true;
+
+        // ========== 通过物品名称关键词判断 ==========
+        String lowerId = itemId.toLowerCase();
+        String[] keywords = {"gun", "pistol", "rifle", "shotgun", "sniper",
+                "carbine", "smg", "machinegun", "cannon", "blaster", "bow", "crossbow"};
+
+        for (String keyword : keywords) {
+            if (lowerId.contains(keyword)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // ==================== 护甲命令实现 ====================
@@ -600,21 +667,22 @@ public class BasCommand {
         }
 
         String gunId = ForgeRegistries.ITEMS.getKey(handItem.getItem()).toString();
-        if (!gunId.startsWith("tacz:")) {
-            ctx.getSource().sendFailure(Component.literal("§c手持物品不是TACZ枪械"));
-            return 0;
+
+        // ========== 改为警告而不是阻止 ==========
+        if (!isRangedWeapon(handItem)) {
+            ctx.getSource().sendSuccess(() -> Component.literal("§e⚠ 警告：该物品可能不是远程武器，但仍显示信息"), false);
         }
 
         int tier = GunTierManager.getGunTier(gunId);
         boolean isLocked = GunTierManager.isLocked(gunId);
 
-        ctx.getSource().sendSuccess(() -> Component.literal("§6=== 枪械信息 ==="), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("§6=== 武器信息 ==="), false);
         ctx.getSource().sendSuccess(() -> Component.literal("§7名称: §e" + handItem.getDisplayName().getString()), false);
-        ctx.getSource().sendSuccess(() -> Component.literal("§7GunId: §8" + gunId), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("§7ID: §8" + gunId), false);
 
         if (tier > 0) {
             float bonus = (tier - 1) * 20;
-            ctx.getSource().sendSuccess(() -> Component.literal("§7等级: §aLv" + tier + " §7(" + getTierName("guntier", tier) + ")" + (isLocked ? " §c[锁定]" : "")), false);
+            ctx.getSource().sendSuccess(() -> Component.literal("§7等级: §aLv" + tier + (isLocked ? " §c[锁定]" : "")), false);
             ctx.getSource().sendSuccess(() -> Component.literal("§7伤害加成: §6+" + (int)bonus + "%"), false);
         } else {
             ctx.getSource().sendSuccess(() -> Component.literal("§7等级: §c未配置"), false);
@@ -635,8 +703,10 @@ public class BasCommand {
         }
 
         String gunId = ForgeRegistries.ITEMS.getKey(handItem.getItem()).toString();
-        if (!gunId.startsWith("tacz:")) {
-            ctx.getSource().sendFailure(Component.literal("§c手持物品不是TACZ枪械"));
+
+        // ========== 移除 TACZ 限制 ==========
+        if (!isRangedWeapon(handItem)) {
+            ctx.getSource().sendFailure(Component.literal("§c手持物品不是远程武器"));
             return 0;
         }
 

@@ -35,6 +35,9 @@ public class TaczAmmoTierConfig {
             setAmmoTier("tacz:762x39", 1);
             setAmmoTier("tacz:762x54", 1);
             setAmmoTier("tacz:rpg_rocket", 1);
+            setAmmoTier("tacz:22wmr", 1);
+            setAmmoTier("tacz:792x57", 1);
+            setAmmoTier("tacz:500mag", 1);
 
             Bullerproof_armor_system_mod.getLogger().info("Tacz模组盔甲等级配置完成！");
         });

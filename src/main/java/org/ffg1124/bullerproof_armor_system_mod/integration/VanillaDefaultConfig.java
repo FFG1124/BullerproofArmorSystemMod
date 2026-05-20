@@ -7,6 +7,8 @@ import org.ffg1124.bullerproof_armor_system_mod.Bullerproof_armor_system_mod;
 import org.ffg1124.bullerproof_armor_system_mod.command.ArmorTierManager;
 import org.ffg1124.bullerproof_armor_system_mod.command.WeaponTierManager;
 
+import static org.ffg1124.bullerproof_armor_system_mod.command.GunTierManager.setGunTier;
+
 @Mod.EventBusSubscriber(modid = Bullerproof_armor_system_mod.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class VanillaDefaultConfig {
 
@@ -109,6 +111,18 @@ public class VanillaDefaultConfig {
             setWeaponTier("minecraft:shield", 2);
 
             Bullerproof_armor_system_mod.getLogger().info("原版物品默认等级配置完成！");
+
+            // ==================== Pillager's Gun（掠夺者的枪）默认等级 ====================
+            Bullerproof_armor_system_mod.getLogger().info("正在为Pillager's Gun模组配置默认等级...");
+
+            // 掠夺者使用的枪械等级配置
+            setGunTier("pillagers_gun:pistol", 2);           // 手枪 - 2级
+            setGunTier("pillagers_gun:assault_rifle", 3);    // 突击步枪 - 3级
+            setGunTier("pillagers_gun:shotgun", 3);          // 霰弹枪 - 3级
+            setGunTier("pillagers_gun:sniper_rifle", 4);     // 狙击步枪 - 4级
+            setGunTier("pillagers_gun:bazooka", 5);          // 巴祖卡 - 5级
+
+            Bullerproof_armor_system_mod.getLogger().info("Pillager's Gun物品默认等级配置完成！");
         });
     }
 
