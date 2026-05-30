@@ -11,6 +11,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.ffg1124.bullerproof_armor_system_mod.command.ArmorTierManager;
+import org.ffg1124.bullerproof_armor_system_mod.durability.CustomDurabilityManager;
 
 @OnlyIn(Dist.CLIENT)
 public class ArmorConfigScreen extends Screen {
@@ -120,6 +121,12 @@ public class ArmorConfigScreen extends Screen {
             statusTimer = 60;
             tierInput.setValue("");
             updateCurrentItemInfo();
+
+            // ========== 新增：立即初始化耐久 ==========
+            CustomDurabilityManager.initCustomDurability(handItem, tier);
+
+            statusMessage = "§a" + String.format(Component.translatable("bullerproof_armor_system_mod.config.set_success").getString(),
+                    handItem.getDisplayName().getString(), tier) + " §7(耐久已初始化)";
         } else {
             statusMessage = "§c" + Component.translatable("bullerproof_armor_system_mod.config.set_failed").getString();
             statusTimer = 60;

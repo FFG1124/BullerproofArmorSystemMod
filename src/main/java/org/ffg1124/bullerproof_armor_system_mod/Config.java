@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 public class Config {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 
+    // ========== 原版配置（保留） ==========
     private static final ForgeConfigSpec.BooleanValue LOG_DIRT_BLOCK = BUILDER
             .comment("是否在通用设置中记录泥土方块")
             .define("logDirtBlock", true);
@@ -67,6 +68,7 @@ public class Config {
             .comment("显示详细的数值信息")
             .define("showDetailedInfo", true);
 
+    // ========== 弹药伤害倍率 ==========
     private static final ForgeConfigSpec.DoubleValue TIER_1_DAMAGE_MULTIPLIER = BUILDER
             .comment("1级弹药的穿透倍率")
             .defineInRange("tier1DamageMultiplier", 1.0, 0.5, 3.0);
@@ -86,9 +88,45 @@ public class Config {
             .comment("6级弹药的穿透倍率")
             .defineInRange("tier6DamageMultiplier", 2.5, 0.5, 3.0);
 
+    // ========== 新增：护甲耐久配置 ==========
+    // 护甲等级对应的最大耐久值
+    private static final ForgeConfigSpec.IntValue ARMOR_TIER_1_DURABILITY = BUILDER
+            .comment("1级护甲的最大耐久值")
+            .defineInRange("armorTier1Durability", 200, 1, 10000);
+
+    private static final ForgeConfigSpec.IntValue ARMOR_TIER_2_DURABILITY = BUILDER
+            .comment("2级护甲的最大耐久值")
+            .defineInRange("armorTier2Durability", 300, 1, 10000);
+
+    private static final ForgeConfigSpec.IntValue ARMOR_TIER_3_DURABILITY = BUILDER
+            .comment("3级护甲的最大耐久值")
+            .defineInRange("armorTier3Durability", 400, 1, 10000);
+
+    private static final ForgeConfigSpec.IntValue ARMOR_TIER_4_DURABILITY = BUILDER
+            .comment("4级护甲的最大耐久值")
+            .defineInRange("armorTier4Durability", 500, 1, 10000);
+
+    private static final ForgeConfigSpec.IntValue ARMOR_TIER_5_DURABILITY = BUILDER
+            .comment("5级护甲的最大耐久值")
+            .defineInRange("armorTier5Durability", 700, 1, 10000);
+
+    private static final ForgeConfigSpec.IntValue ARMOR_TIER_6_DURABILITY = BUILDER
+            .comment("6级护甲的最大耐久值")
+            .defineInRange("armorTier6Durability", 900, 1, 10000);
+
+    // 耐久损耗倍率
+    private static final ForgeConfigSpec.DoubleValue DURABILITY_LOSS_MULTIPLIER = BUILDER
+            .comment("耐久损耗倍率（1.0 = 1伤害 = 1耐久）")
+            .defineInRange("durabilityLossMultiplier", 1.0, 0.0, 10.0);
+
+    // 是否启用自定义耐久系统
+    private static final ForgeConfigSpec.BooleanValue ENABLE_CUSTOM_DURABILITY = BUILDER
+            .comment("启用自定义耐久系统")
+            .define("enableCustomDurability", true);
+
     static final ForgeConfigSpec SPEC = BUILDER.build();
 
-    // 默认值
+    // 默认值变量
     public static boolean logDirtBlock = true;
     public static int magicNumber = 42;
     public static String magicNumberIntroduction = "神奇的数字是... ";
@@ -105,6 +143,11 @@ public class Config {
     public static int hudPositionY = 5;
     public static boolean showDetailedInfo = true;
 
+    // ========== 耐久配置变量 ==========
+    public static int[] armorTierDurability = new int[7];  // 索引1-6
+    public static double durabilityLossMultiplier = 1.0;
+    public static boolean enableCustomDurability = true;
+
     private static boolean validateItemName(final Object obj) {
         return obj instanceof final String itemName && ForgeRegistries.ITEMS.containsKey(new ResourceLocation(itemName));
     }
@@ -112,6 +155,7 @@ public class Config {
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event) {
         try {
+            // 原版配置
             logDirtBlock = LOG_DIRT_BLOCK.get();
             magicNumber = MAGIC_NUMBER.get();
             magicNumberIntroduction = MAGIC_NUMBER_INTRODUCTION.get();
@@ -132,6 +176,7 @@ public class Config {
             enableBallisticSystem = ENABLE_BALLISTIC_SYSTEM.get();
             enableTaczIntegration = ENABLE_TACZ_INTEGRATION.get();
 
+            // 弹药倍率
             tierDamageMultipliers[1] = TIER_1_DAMAGE_MULTIPLIER.get().floatValue();
             tierDamageMultipliers[2] = TIER_2_DAMAGE_MULTIPLIER.get().floatValue();
             tierDamageMultipliers[3] = TIER_3_DAMAGE_MULTIPLIER.get().floatValue();
@@ -139,6 +184,7 @@ public class Config {
             tierDamageMultipliers[5] = TIER_5_DAMAGE_MULTIPLIER.get().floatValue();
             tierDamageMultipliers[6] = TIER_6_DAMAGE_MULTIPLIER.get().floatValue();
 
+            // TACZ 映射
             Map<String, Integer> newMapping = new HashMap<>();
             String mappingStr = TACZ_AMMO_MAPPING.get();
             if (mappingStr != null && !mappingStr.isEmpty()) {
@@ -154,32 +200,40 @@ public class Config {
                 }
             }
             taczAmmoMapping = newMapping;
+
+            // ========== 加载耐久配置 ==========
+            enableCustomDurability = ENABLE_CUSTOM_DURABILITY.get();
+            durabilityLossMultiplier = DURABILITY_LOSS_MULTIPLIER.get();
+
+            armorTierDurability[1] = ARMOR_TIER_1_DURABILITY.get();
+            armorTierDurability[2] = ARMOR_TIER_2_DURABILITY.get();
+            armorTierDurability[3] = ARMOR_TIER_3_DURABILITY.get();
+            armorTierDurability[4] = ARMOR_TIER_4_DURABILITY.get();
+            armorTierDurability[5] = ARMOR_TIER_5_DURABILITY.get();
+            armorTierDurability[6] = ARMOR_TIER_6_DURABILITY.get();
+
+            Bullerproof_armor_system_mod.getLogger().info("护甲耐久配置加载完成:");
+            for (int i = 1; i <= 6; i++) {
+                Bullerproof_armor_system_mod.getLogger().info("  等级{}护甲: {}耐久", i, armorTierDurability[i]);
+            }
+            Bullerproof_armor_system_mod.getLogger().info("耐久损耗倍率: {}", durabilityLossMultiplier);
+
         } catch (Exception e) {
             Bullerproof_armor_system_mod.getLogger().error("加载配置文件失败: {}", e.getMessage());
         }
     }
 
-    public static class ArmorConfig {
-        public static ForgeConfigSpec.BooleanValue ENABLE_ARMOR_NO_BREAK;
-        public static ForgeConfigSpec.DoubleValue DURABILITY_LOSS_MULTIPLIER;
-        public static ForgeConfigSpec.BooleanValue SHOW_BROKEN_ARMOR_TOOLTIP;
+    // ========== 获取护甲耐久的方法 ==========
+    public static int getArmorDurabilityByTier(int armorTier) {
+        if (armorTier < 1 || armorTier > 6) return 500;
+        return armorTierDurability[armorTier];
+    }
 
-        public static void init(ForgeConfigSpec.Builder builder) {
-            builder.push("armor");
+    public static float getDurabilityLossMultiplier() {
+        return (float) durabilityLossMultiplier;
+    }
 
-            ENABLE_ARMOR_NO_BREAK = builder
-                    .comment("启用盔甲耐久耗尽后不消失功能")
-                    .define("enableArmorNoBreak", true);
-
-            DURABILITY_LOSS_MULTIPLIER = builder
-                    .comment("盔甲耐久损耗系数 (0.0-1.0)")
-                    .defineInRange("durabilityLossMultiplier", 0.1, 0.0, 1.0);
-
-            SHOW_BROKEN_ARMOR_TOOLTIP = builder
-                    .comment("显示损坏盔甲的工具提示")
-                    .define("showBrokenArmorTooltip", true);
-
-            builder.pop();
-        }
+    public static boolean isCustomDurabilityEnabled() {
+        return enableCustomDurability;
     }
 }

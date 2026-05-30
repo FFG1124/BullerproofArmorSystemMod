@@ -123,6 +123,14 @@ public class VanillaDefaultConfig {
             setGunTier("pillagers_gun:bazooka", 5);          // 巴祖卡 - 5级
 
             Bullerproof_armor_system_mod.getLogger().info("Pillager's Gun物品默认等级配置完成！");
+
+            // ==================== Zombie Survival Kit（掠夺者的枪）默认等级 ====================
+            Bullerproof_armor_system_mod.getLogger().info("正在为Pillager's Gun模组配置默认等级...");
+
+            // 掠夺者使用的枪械等级配置
+            setGunTier("zombiekit:flamethrower", 2);           // 手枪 - 2级
+
+            Bullerproof_armor_system_mod.getLogger().info("Pillager's Gun物品默认等级配置完成！");
         });
     }
 

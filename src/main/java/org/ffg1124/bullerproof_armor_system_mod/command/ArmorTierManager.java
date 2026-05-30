@@ -4,9 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.ffg1124.bullerproof_armor_system_mod.Bullerproof_armor_system_mod;
+import org.ffg1124.bullerproof_armor_system_mod.durability.CustomDurabilityManager;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -95,7 +97,64 @@ public class ArmorTierManager {
         }
         armorTierMap.put(armorId, tier);
         saveToFile();
+
+        // ========== 新增：触发护甲耐久初始化 ==========
+        triggerArmorDurabilityInit(armorId, tier);
+
         return true;
+    }
+
+    /**
+     * 触发所有在线玩家手持或装备的护甲耐久初始化
+     */
+    private static void triggerArmorDurabilityInit(String armorId, int tier) {
+        // 获取所有在线玩家
+        var server = net.minecraftforge.server.ServerLifecycleHooks.getCurrentServer();
+        if (server == null) return;
+
+        for (var player : server.getPlayerList().getPlayers()) {
+            // 检查主手
+            ItemStack mainHand = player.getMainHandItem();
+            if (!mainHand.isEmpty()) {
+                String id = ForgeRegistries.ITEMS.getKey(mainHand.getItem()).toString();
+                if (id.equals(armorId)) {
+                    CustomDurabilityManager.initCustomDurability(mainHand, tier);
+                    Bullerproof_armor_system_mod.getLogger().info(
+                            "已初始化玩家 {} 手持护甲耐久: {}", player.getName().getString(), armorId
+                    );
+                }
+            }
+
+            // 检查所有装备栏
+            for (var slot : new net.minecraft.world.entity.EquipmentSlot[]{
+                    net.minecraft.world.entity.EquipmentSlot.HEAD,
+                    net.minecraft.world.entity.EquipmentSlot.CHEST,
+                    net.minecraft.world.entity.EquipmentSlot.LEGS,
+                    net.minecraft.world.entity.EquipmentSlot.FEET
+            }) {
+                ItemStack armor = player.getItemBySlot(slot);
+                if (!armor.isEmpty()) {
+                    String id = ForgeRegistries.ITEMS.getKey(armor.getItem()).toString();
+                    if (id.equals(armorId)) {
+                        CustomDurabilityManager.initCustomDurability(armor, tier);
+                        Bullerproof_armor_system_mod.getLogger().info(
+                                "已初始化玩家 {} 装备护甲耐久: {}", player.getName().getString(), armorId
+                        );
+                    }
+                }
+            }
+
+            // 检查背包
+            for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+                ItemStack item = player.getInventory().getItem(i);
+                if (!item.isEmpty()) {
+                    String id = ForgeRegistries.ITEMS.getKey(item.getItem()).toString();
+                    if (id.equals(armorId)) {
+                        CustomDurabilityManager.initCustomDurability(item, tier);
+                    }
+                }
+            }
+        }
     }
 
     public static void setArmorTierInternal(String armorId, int tier) {

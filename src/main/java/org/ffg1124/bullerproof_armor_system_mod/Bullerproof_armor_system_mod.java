@@ -10,6 +10,8 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.ModLoadingContext;
 import org.ffg1124.bullerproof_armor_system_mod.command.AmmoTierManager;
+import org.ffg1124.bullerproof_armor_system_mod.item.ModCreativeModeTab;
+import org.ffg1124.bullerproof_armor_system_mod.item.ModItems;
 
 @Mod(Bullerproof_armor_system_mod.MODID)
 @SuppressWarnings("removal")
@@ -25,7 +27,8 @@ public class Bullerproof_armor_system_mod {
         modEventBus.addListener(this::commonSetup);
         MinecraftForge.EVENT_BUS.register(this);
 
-        // 删除 HudConfig.register() 这行
+        ModItems.register(modEventBus);
+        ModCreativeModeTab.register(modEventBus);
 
         // 注册通用配置
         ModLoadingContext.get().registerConfig(

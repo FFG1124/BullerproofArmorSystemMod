@@ -41,7 +41,12 @@
   "bullerproof_armor_system_mod.tooltip.ammo_tier": "Ammo Tier: §eLv%s",
   "bullerproof_armor_system_mod.tooltip.ammo_damage_bonus": "Penetration Bonus: §6+%s%% Damage",
   "bullerproof_armor_system_mod.tooltip.armor_tier": "Armor Tier: §eLv%s",
-  "bullerproof_armor_system_mod.tooltip.armor_protection": "Ballistic Protection: §aBlocks %s%% Damage",
+  "bullerproof_armor_system_mod.tooltip.armor_tier_unconfigured": "Armor Tier: Not Configured",
+  "bullerproof_armor_system_mod.tooltip.armor_broken": "§l[ BROKEN ]",
+  "bullerproof_armor_system_mod.tooltip.armor_low_durability": "§6⚠ Low durability, repair recommended",
+  "bullerproof_armor_system_mod.tooltip.durability": "Durability",
+  "bullerproof_armor_system_mod.tooltip.durability_broken": "Broken",
+  "bullerproof_armor_system_mod.tooltip.durability_not_initialized": "Durability: Not Initialized",
   "bullerproof_armor_system_mod.tooltip.weapon_tier": "Weapon Tier: §eLv%s",
   "bullerproof_armor_system_mod.tooltip.weapon_damage_bonus": "Damage Bonus: §6+%s%% Damage",
 
@@ -65,6 +70,11 @@
   "weapontier.tier.name.4": "Tier 4 Weapon",
   "weapontier.tier.name.5": "Tier 5 Weapon",
   "weapontier.tier.name.6": "Tier 6 Weapon",
+
+  "item.bullerproof_armor_system_mod.basic_repair_kit": "Basic Repair Kir",
+  "item.bullerproof_armor_system_mod.medium_repair_kit": "Medium Repair Kit",
+  "item.bullerproof_armor_system_mod.advanced_repair_kit": "Advanced Repair Kir",
+  "itemGroup.bullerproof_armor_system_mod": "Bullerproof Armor System",
 
   "armortier.command.hand.empty": "§cNo item in hand",
   "armortier.command.set.failed": "§cSet failed",

@@ -42,6 +42,13 @@
   "bullerproof_armor_system_mod.tooltip.ammo_damage_bonus": "穿透加成: §6+%s%% 伤害",
   "bullerproof_armor_system_mod.tooltip.armor_tier": "护甲等级: §eLv%s",
   "bullerproof_armor_system_mod.tooltip.armor_protection": "防弹效果: §a抵挡 %s%% 伤害",
+  "bullerproof_armor_system_mod.tooltip.armor_tier_unconfigured": "护甲等级: 未配置",
+  "bullerproof_armor_system_mod.tooltip.armor_broken": "§l[ 已损坏 ]",
+  "bullerproof_armor_system_mod.tooltip.armor_broken_hint": "§7无法提供防护，使用 /bas repair 修复",
+  "bullerproof_armor_system_mod.tooltip.armor_low_durability": "§6⚠ 耐久较低，建议修复",
+  "bullerproof_armor_system_mod.tooltip.durability": "耐久",
+  "bullerproof_armor_system_mod.tooltip.durability_broken": "已损坏",
+  "bullerproof_armor_system_mod.tooltip.durability_not_initialized": "耐久: 未初始化",
   "bullerproof_armor_system_mod.tooltip.weapon_tier": "武器等级: §eLv%s",
   "bullerproof_armor_system_mod.tooltip.weapon_damage_bonus": "伤害加成: §6+%s%% 伤害",
 

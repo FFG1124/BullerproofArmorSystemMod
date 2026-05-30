@@ -22,6 +22,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import org.ffg1124.bullerproof_armor_system_mod.Bullerproof_armor_system_mod;
 import org.ffg1124.bullerproof_armor_system_mod.ballistic.BallisticUtils;
+import org.ffg1124.bullerproof_armor_system_mod.durability.CustomDurabilityManager;
 
 public class BasCommand {
 
@@ -178,6 +179,9 @@ public class BasCommand {
                         .executes(BasCommand::saveAll))
                 .then(Commands.literal("path")
                         .executes(BasCommand::showPaths))
+
+                .then(Commands.literal("initall")
+                        .executes(BasCommand::initAllArmor))
         );
     }
 
@@ -195,6 +199,7 @@ public class BasCommand {
         String[] gunModNamespaces = {
                 "tacz",           // 永恒枪械工坊
                 "pillagers_gun",  // 掠夺者的枪（有下划线）
+                "zombiekit",    //Zombie Survival Kit
                 "pointblank",     // Vic's Point Blank
                 "pb",             // Point Blank 缩写
                 "cgm",            // MrCrayfish's Gun Mod
@@ -294,23 +299,79 @@ public class BasCommand {
         final String finalTierName = getTierName("armortier", tier);
 
         if (ArmorTierManager.setArmorTier(itemId, tier)) {
-            ctx.getSource().sendSuccess(() -> Component.literal("§a已设置 " + finalItemName + " 为 Lv" + finalTier + " (" + finalTierName + ")"), true);
+            // ========== 新增：立即初始化手持护甲耐久 ==========
+            CustomDurabilityManager.initCustomDurability(handItem, tier);
+
+            // ========== 新增：刷新玩家背包中所有相同护甲的耐久 ==========
+            refreshAllArmorDurability(player, itemId, tier);
+
+            ctx.getSource().sendSuccess(() -> Component.literal("§a已设置 " + finalItemName + " 为 Lv" + finalTier + " (" + finalTierName + ") 并初始化耐久"), true);
         } else {
             ctx.getSource().sendFailure(getMessage("armortier.command.set.failed"));
         }
         return 1;
     }
 
+
     private static int armorSetId(CommandContext<CommandSourceStack> ctx) {
         String armorId = StringArgumentType.getString(ctx, "护甲ID");
         int tier = IntegerArgumentType.getInteger(ctx, "等级");
 
+        CommandSourceStack source = ctx.getSource();
+
         if (ArmorTierManager.setArmorTier(armorId, tier)) {
-            ctx.getSource().sendSuccess(() -> Component.literal("§a已设置 " + armorId + " 为 Lv" + tier), true);
+            // ========== 新增：刷新所有在线玩家背包中的该护甲耐久 ==========
+            refreshAllPlayersArmorDurability(armorId, tier);
+
+            source.sendSuccess(() -> Component.literal("§a已设置 " + armorId + " 为 Lv" + tier + " 并初始化所有该护甲耐久"), true);
         } else {
-            ctx.getSource().sendFailure(getMessage("armortier.command.set.failed"));
+            source.sendFailure(getMessage("armortier.command.set.failed"));
         }
         return 1;
+    }
+
+    /**
+     * 刷新玩家背包中所有指定护甲的耐久
+     */
+    private static void refreshAllArmorDurability(Player player, String armorId, int tier) {
+        // 刷新装备栏
+        for (var slot : new net.minecraft.world.entity.EquipmentSlot[]{
+                net.minecraft.world.entity.EquipmentSlot.HEAD,
+                net.minecraft.world.entity.EquipmentSlot.CHEST,
+                net.minecraft.world.entity.EquipmentSlot.LEGS,
+                net.minecraft.world.entity.EquipmentSlot.FEET
+        }) {
+            ItemStack armor = player.getItemBySlot(slot);
+            if (!armor.isEmpty()) {
+                String id = ForgeRegistries.ITEMS.getKey(armor.getItem()).toString();
+                if (id.equals(armorId)) {
+                    CustomDurabilityManager.initCustomDurability(armor, tier);
+                }
+            }
+        }
+
+        // 刷新背包
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack item = player.getInventory().getItem(i);
+            if (!item.isEmpty()) {
+                String id = ForgeRegistries.ITEMS.getKey(item.getItem()).toString();
+                if (id.equals(armorId)) {
+                    CustomDurabilityManager.initCustomDurability(item, tier);
+                }
+            }
+        }
+    }
+
+    /**
+     * 刷新所有在线玩家背包中的指定护甲耐久
+     */
+    private static void refreshAllPlayersArmorDurability(String armorId, int tier) {
+        var server = net.minecraftforge.server.ServerLifecycleHooks.getCurrentServer();
+        if (server == null) return;
+
+        for (var player : server.getPlayerList().getPlayers()) {
+            refreshAllArmorDurability(player, armorId, tier);
+        }
     }
 
     private static int armorGet(CommandContext<CommandSourceStack> ctx) {
@@ -941,6 +1002,48 @@ public class BasCommand {
         ctx.getSource().sendSuccess(() -> Component.literal("  §e/bas save §7- 保存所有配置"), false);
         ctx.getSource().sendSuccess(() -> Component.literal("  §e/bas path §7- 显示配置文件路径"), false);
 
+        return 1;
+    }
+
+    // ==================== 初始化所有护甲命令 ====================
+    private static int initAllArmor(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        CommandSourceStack source = ctx.getSource();
+        Player player = source.getPlayerOrException();
+        final int[] count = {0};  // 使用数组包装，使其在lambda中可修改
+
+        // 初始化所有装备的护甲
+        for (var slot : new net.minecraft.world.entity.EquipmentSlot[]{
+                net.minecraft.world.entity.EquipmentSlot.HEAD,
+                net.minecraft.world.entity.EquipmentSlot.CHEST,
+                net.minecraft.world.entity.EquipmentSlot.LEGS,
+                net.minecraft.world.entity.EquipmentSlot.FEET
+        }) {
+            ItemStack armor = player.getItemBySlot(slot);
+            if (!armor.isEmpty()) {
+                String itemId = ForgeRegistries.ITEMS.getKey(armor.getItem()).toString();
+                int tier = ArmorTierManager.getArmorTier(itemId);
+                if (tier > 0) {
+                    CustomDurabilityManager.initCustomDurability(armor, tier);
+                    count[0]++;
+                }
+            }
+        }
+
+        // 初始化背包中的所有护甲
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack item = player.getInventory().getItem(i);
+            if (!item.isEmpty() && item.getItem() instanceof net.minecraft.world.item.ArmorItem) {
+                String itemId = ForgeRegistries.ITEMS.getKey(item.getItem()).toString();
+                int tier = ArmorTierManager.getArmorTier(itemId);
+                if (tier > 0) {
+                    CustomDurabilityManager.initCustomDurability(item, tier);
+                    count[0]++;
+                }
+            }
+        }
+
+        final int finalCount = count[0];  // 创建最终变量用于lambda
+        source.sendSuccess(() -> Component.literal("§a已初始化 " + finalCount + " 件护甲的耐久"), false);
         return 1;
     }
 }
