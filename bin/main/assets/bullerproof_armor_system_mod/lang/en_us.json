@@ -44,7 +44,6 @@
   "bullerproof_armor_system_mod.tooltip.armor_protection": "Ballistic Protection: §aBlocks %s%% Damage",
   "bullerproof_armor_system_mod.tooltip.armor_tier_unconfigured": "Armor Tier: Not Configured",
   "bullerproof_armor_system_mod.tooltip.armor_broken": "§l[ BROKEN ]",
-  "bullerproof_armor_system_mod.tooltip.armor_broken_hint": "§7No protection, use /bas repair",
   "bullerproof_armor_system_mod.tooltip.armor_low_durability": "§6⚠ Low durability, repair recommended",
   "bullerproof_armor_system_mod.tooltip.durability": "Durability",
   "bullerproof_armor_system_mod.tooltip.durability_broken": "Broken",

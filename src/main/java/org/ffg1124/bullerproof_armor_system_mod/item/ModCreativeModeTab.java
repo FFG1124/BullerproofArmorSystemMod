@@ -19,7 +19,6 @@ public class ModCreativeModeTab {
                     .icon(() -> new ItemStack(ModItems.ADVANCED_REPAIR_KIT.get()))
                     .title(Component.translatable("itemGroup.bullerproof_armor_system_mod"))
                     .displayItems((parameters, output) -> {
-                        // 添加维修包
                         output.accept(ModItems.BASIC_REPAIR_KIT.get());
                         output.accept(ModItems.MEDIUM_REPAIR_KIT.get());
                         output.accept(ModItems.ADVANCED_REPAIR_KIT.get());

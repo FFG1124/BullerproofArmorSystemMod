@@ -20,6 +20,7 @@ import org.ffg1124.bullerproof_armor_system_mod.command.AmmoTierManager;
 import org.ffg1124.bullerproof_armor_system_mod.command.ArmorTierManager;
 import org.ffg1124.bullerproof_armor_system_mod.command.WeaponTierManager;
 import org.ffg1124.bullerproof_armor_system_mod.durability.CustomDurabilityManager;
+import org.ffg1124.bullerproof_armor_system_mod.item.ArmorRepairKitItem;
 
 import java.util.List;
 
@@ -108,6 +109,25 @@ public class ItemTierTooltipHandler {
                 tooltip.add(Component.literal(""));
                 tooltip.add(Component.translatable("bullerproof_armor_system_mod.tooltip.armor_low_durability")
                         .withStyle(ChatFormatting.GOLD));
+            }
+
+            int repairCount = ArmorRepairKitItem.getArmorRepairCount(stack);
+            int reduction = ArmorRepairKitItem.getArmorMaxReduction(stack);
+            int displayMax = ArmorRepairKitItem.getCurrentMaxDurability(stack);
+            int originalMax = CustomDurabilityManager.getMaxDurability(stack);
+
+            if (repairCount > 0) {
+                tooltip.add(Component.literal("")
+                        .append(Component.literal("修复次数: " + repairCount))
+                        .withStyle(ChatFormatting.DARK_GRAY));
+                tooltip.add(Component.literal("")
+                        .append(Component.literal("最大耐久损耗: " + reduction))
+                        .withStyle(ChatFormatting.DARK_GRAY));
+                if (displayMax < originalMax) {
+                    tooltip.add(Component.literal("")
+                            .append(Component.literal("当前最大耐久: " + displayMax + " / " + originalMax))
+                            .withStyle(ChatFormatting.RED));
+                }
             }
 
             return;

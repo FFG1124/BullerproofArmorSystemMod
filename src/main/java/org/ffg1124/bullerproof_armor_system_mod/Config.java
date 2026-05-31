@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 public class Config {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 
-    // ========== 原版配置（保留） ==========
+    // ========== 原版配置 ==========
     private static final ForgeConfigSpec.BooleanValue LOG_DIRT_BLOCK = BUILDER
             .comment("是否在通用设置中记录泥土方块")
             .define("logDirtBlock", true);
@@ -88,41 +88,36 @@ public class Config {
             .comment("6级弹药的穿透倍率")
             .defineInRange("tier6DamageMultiplier", 2.5, 0.5, 3.0);
 
-    // ========== 新增：护甲耐久配置 ==========
-    // 护甲等级对应的最大耐久值
+    // ========== 护甲耐久配置 ==========
     private static final ForgeConfigSpec.IntValue ARMOR_TIER_1_DURABILITY = BUILDER
             .comment("1级护甲的最大耐久值")
             .defineInRange("armorTier1Durability", 200, 1, 10000);
-
     private static final ForgeConfigSpec.IntValue ARMOR_TIER_2_DURABILITY = BUILDER
             .comment("2级护甲的最大耐久值")
             .defineInRange("armorTier2Durability", 300, 1, 10000);
-
     private static final ForgeConfigSpec.IntValue ARMOR_TIER_3_DURABILITY = BUILDER
             .comment("3级护甲的最大耐久值")
             .defineInRange("armorTier3Durability", 400, 1, 10000);
-
     private static final ForgeConfigSpec.IntValue ARMOR_TIER_4_DURABILITY = BUILDER
             .comment("4级护甲的最大耐久值")
             .defineInRange("armorTier4Durability", 500, 1, 10000);
-
     private static final ForgeConfigSpec.IntValue ARMOR_TIER_5_DURABILITY = BUILDER
             .comment("5级护甲的最大耐久值")
             .defineInRange("armorTier5Durability", 700, 1, 10000);
-
     private static final ForgeConfigSpec.IntValue ARMOR_TIER_6_DURABILITY = BUILDER
             .comment("6级护甲的最大耐久值")
             .defineInRange("armorTier6Durability", 900, 1, 10000);
-
-    // 耐久损耗倍率
     private static final ForgeConfigSpec.DoubleValue DURABILITY_LOSS_MULTIPLIER = BUILDER
             .comment("耐久损耗倍率（1.0 = 1伤害 = 1耐久）")
             .defineInRange("durabilityLossMultiplier", 1.0, 0.0, 10.0);
-
-    // 是否启用自定义耐久系统
     private static final ForgeConfigSpec.BooleanValue ENABLE_CUSTOM_DURABILITY = BUILDER
             .comment("启用自定义耐久系统")
             .define("enableCustomDurability", true);
+
+    // ========== 维修包使用方式配置 ==========
+    private static final ForgeConfigSpec.BooleanValue REPAIR_KIT_HOLD_TO_USE = BUILDER
+            .comment("维修包使用方式: true=长按使用, false=点击使用")
+            .define("repairKitHoldToUse", true);
 
     static final ForgeConfigSpec SPEC = BUILDER.build();
 
@@ -143,10 +138,13 @@ public class Config {
     public static int hudPositionY = 5;
     public static boolean showDetailedInfo = true;
 
-    // ========== 耐久配置变量 ==========
-    public static int[] armorTierDurability = new int[7];  // 索引1-6
+    // 耐久配置变量
+    public static int[] armorTierDurability = new int[7];
     public static double durabilityLossMultiplier = 1.0;
     public static boolean enableCustomDurability = true;
+
+    // ========== 维修包使用方式变量 ==========
+    public static boolean repairKitHoldToUse = true;
 
     private static boolean validateItemName(final Object obj) {
         return obj instanceof final String itemName && ForgeRegistries.ITEMS.containsKey(new ResourceLocation(itemName));
@@ -201,7 +199,7 @@ public class Config {
             }
             taczAmmoMapping = newMapping;
 
-            // ========== 加载耐久配置 ==========
+            // 加载耐久配置
             enableCustomDurability = ENABLE_CUSTOM_DURABILITY.get();
             durabilityLossMultiplier = DURABILITY_LOSS_MULTIPLIER.get();
 
@@ -212,11 +210,15 @@ public class Config {
             armorTierDurability[5] = ARMOR_TIER_5_DURABILITY.get();
             armorTierDurability[6] = ARMOR_TIER_6_DURABILITY.get();
 
+            // ========== 加载维修包使用方式配置 ==========
+            repairKitHoldToUse = REPAIR_KIT_HOLD_TO_USE.get();
+
             Bullerproof_armor_system_mod.getLogger().info("护甲耐久配置加载完成:");
             for (int i = 1; i <= 6; i++) {
                 Bullerproof_armor_system_mod.getLogger().info("  等级{}护甲: {}耐久", i, armorTierDurability[i]);
             }
             Bullerproof_armor_system_mod.getLogger().info("耐久损耗倍率: {}", durabilityLossMultiplier);
+            Bullerproof_armor_system_mod.getLogger().info("维修包使用方式: {}", repairKitHoldToUse ? "长按" : "点击");
 
         } catch (Exception e) {
             Bullerproof_armor_system_mod.getLogger().error("加载配置文件失败: {}", e.getMessage());

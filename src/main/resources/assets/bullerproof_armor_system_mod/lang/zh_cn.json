@@ -71,10 +71,25 @@
   "weapontier.tier.name.5": "五级武器",
   "weapontier.tier.name.6": "六级武器",
 
-  "item.bullerproof_armor_system_mod.basic_repair_kit": "初级护甲维修包",
-  "item.bullerproof_armor_system_mod.medium_repair_kit": "中级护甲维修包",
-  "item.bullerproof_armor_system_mod.advanced_repair_kit": "高级护甲维修包",
+  "item.bullerproof_armor_system_mod.basic_repair_kit": "§b初级护甲维修包",
+  "item.bullerproof_armor_system_mod.medium_repair_kit": "§e中级护甲维修包",
+  "item.bullerproof_armor_system_mod.advanced_repair_kit": "§c高级护甲维修包",
   "itemGroup.bullerproof_armor_system_mod": "Bullerproof Armor System",
+
+  "item.bullerproof_armor_system_mod.repair_kit.usage.hold": "长按右键使用，修复穿戴的护甲",
+  "item.bullerproof_armor_system_mod.repair_kit.usage.click": "右键点击使用，修复穿戴的护甲",
+  "item.bullerproof_armor_system_mod.repair_kit.hold_time": "长按时间: %d 秒",
+  "item.bullerproof_armor_system_mod.repair_kit.speed_reduction": "修复期间移动速度降低 %d%%",
+  "item.bullerproof_armor_system_mod.repair_kit.cost": "修复消耗: 1耐久 = 1护甲耐久",
+  "item.bullerproof_armor_system_mod.repair_kit.durability": "剩余维修耐久:",
+  "item.bullerproof_armor_system_mod.repair_kit.depleted_warning": "⚠ 维修包已耗尽，无法使用",
+
+  "item.bullerproof_armor_system_mod.repair_kit.hold_start": "§7🔧 长按 %d 秒修复%s护甲...",
+  "item.bullerproof_armor_system_mod.repair_kit.broken": "§c✗ 维修包已损坏，无法使用",
+  "item.bullerproof_armor_system_mod.repair_kit.no_armor": "§c✗ 没有需要修复的护甲",
+  "item.bullerproof_armor_system_mod.repair_kit.insufficient": "§c✗ 维修包剩余耐久不足 (需要 %d，剩余 %d)",
+  "item.bullerproof_armor_system_mod.repair_kit.depleted": "§c⚠ 维修包已耗尽耐久",
+  "item.bullerproof_armor_system_mod.repair_kit.complete": "§a✓ 修复完成！修复了 %d 点护甲耐久，维修包剩余耐久: %d/%d",
 
   "armortier.command.hand.empty": "§c手中没有物品",
   "armortier.command.set.failed": "§c设置失败",
@@ -86,7 +101,5 @@
 
   "weapontier.command.hand.empty": "§c手中没有物品",
   "weapontier.command.set.failed": "§c设置失败",
-  "weapontier.command.remove.failed": "§c移除失败",
-  "bullerproof_armor_system_mod.tooltip.armor_protection": "Ballistic Protection: §aBlocks %s%% Damage",
-  "bullerproof_armor_system_mod.tooltip.armor_broken_hint": "§7No protection, use /bas repair"
+  "weapontier.command.remove.failed": "§c移除失败"
 }

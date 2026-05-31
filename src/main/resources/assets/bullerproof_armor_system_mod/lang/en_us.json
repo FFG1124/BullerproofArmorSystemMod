@@ -71,10 +71,25 @@
   "weapontier.tier.name.5": "Tier 5 Weapon",
   "weapontier.tier.name.6": "Tier 6 Weapon",
 
-  "item.bullerproof_armor_system_mod.basic_repair_kit": "Basic Repair Kir",
-  "item.bullerproof_armor_system_mod.medium_repair_kit": "Medium Repair Kit",
-  "item.bullerproof_armor_system_mod.advanced_repair_kit": "Advanced Repair Kir",
+  "item.bullerproof_armor_system_mod.basic_repair_kit": "§bBasic Repair Kir",
+  "item.bullerproof_armor_system_mod.medium_repair_kit": "§eMedium Repair Kit",
+  "item.bullerproof_armor_system_mod.advanced_repair_kit": "§cAdvanced Repair Kir",
   "itemGroup.bullerproof_armor_system_mod": "Bullerproof Armor System",
+
+  "item.bullerproof_armor_system_mod.repair_kit.usage.hold": "Hold right-click to repair worn armor",
+  "item.bullerproof_armor_system_mod.repair_kit.usage.click": "Right-click to repair worn armor",
+  "item.bullerproof_armor_system_mod.repair_kit.hold_time": "Hold time: %d seconds",
+  "item.bullerproof_armor_system_mod.repair_kit.speed_reduction": "Movement speed reduced by %d%% while repairing",
+  "item.bullerproof_armor_system_mod.repair_kit.cost": "Repair cost: 1 durability = 1 armor durability",
+  "item.bullerproof_armor_system_mod.repair_kit.durability": "Remaining repair durability:",
+  "item.bullerproof_armor_system_mod.repair_kit.depleted_warning": "⚠ Repair kit depleted, cannot use",
+
+  "item.bullerproof_armor_system_mod.repair_kit.hold_start": "§7🔧 Hold for %d seconds to repair %s armor...",
+  "item.bullerproof_armor_system_mod.repair_kit.broken": "§c✗ Repair kit is broken, cannot use",
+  "item.bullerproof_armor_system_mod.repair_kit.no_armor": "§c✗ No armor needs repair",
+  "item.bullerproof_armor_system_mod.repair_kit.insufficient": "§c✗ Insufficient durability (need %d, have %d)",
+  "item.bullerproof_armor_system_mod.repair_kit.depleted": "§c⚠ Repair kit depleted",
+  "item.bullerproof_armor_system_mod.repair_kit.complete": "§a✓ Repair complete! Repaired %d durability, remaining: %d/%d",
 
   "armortier.command.hand.empty": "§cNo item in hand",
   "armortier.command.set.failed": "§cSet failed",
