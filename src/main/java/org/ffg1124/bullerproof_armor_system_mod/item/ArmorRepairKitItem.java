@@ -3,7 +3,6 @@ package org.ffg1124.bullerproof_armor_system_mod.item;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -15,9 +14,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.simple.SimpleChannel;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.ffg1124.bullerproof_armor_system_mod.Bullerproof_armor_system_mod;
 import org.ffg1124.bullerproof_armor_system_mod.Config;
@@ -34,30 +30,38 @@ public class ArmorRepairKitItem extends Item {
 
     private final RepairKitTier tier;
 
-    // 记录每个玩家开始长按的时间（客户端和服务端共享）
+    // 长按任务存储（客户端计时用）
     private static final Map<UUID, Long> startTimeMap = new HashMap<>();
-    // 记录每个玩家是否已完成长按（由客户端通知）
-    private static final Map<UUID, Boolean> holdCompleteMap = new HashMap<>();
 
     public enum RepairKitTier {
-        BASIC("初级", ChatFormatting.GRAY, 200, 4, 0.5f),   // 2秒
-        MEDIUM("中级", ChatFormatting.BLUE, 500, 6, 0.6f),  // 3秒
-        ADVANCED("高级", ChatFormatting.GOLD, 1000, 11, 0.7f); // 4秒
+        BASIC("初级", ChatFormatting.GRAY, 200, 0.5f),
+        MEDIUM("中级", ChatFormatting.BLUE, 500, 0.6f),
+        ADVANCED("高级", ChatFormatting.GOLD, 1000, 0.7f);
 
         public final String name;
         public final ChatFormatting color;
         public final int maxDurability;
-        public final int requiredSeconds;
-        public final int requiredTicks;
         public final float speedModifier;
 
-        RepairKitTier(String name, ChatFormatting color, int maxDurability, int requiredSeconds, float speedModifier) {
+        RepairKitTier(String name, ChatFormatting color, int maxDurability, float speedModifier) {
             this.name = name;
             this.color = color;
             this.maxDurability = maxDurability;
-            this.requiredSeconds = requiredSeconds;
-            this.requiredTicks = requiredSeconds * 20;
             this.speedModifier = speedModifier;
+        }
+
+        // 获取实际长按时间（秒）- 从配置读取
+        public int getRequiredSeconds() {
+            switch (this) {
+                case BASIC: return Config.basicRepairTime;
+                case MEDIUM: return Config.mediumRepairTime;
+                case ADVANCED: return Config.advancedRepairTime;
+                default: return 2;
+            }
+        }
+
+        public int getRequiredTicks() {
+            return getRequiredSeconds() * 20;
         }
     }
 
@@ -89,6 +93,9 @@ public class ArmorRepairKitItem extends Item {
         return tier.maxDurability;
     }
 
+    /**
+     * 获取护甲原始最大耐久
+     */
     public static int getOriginalMaxDurability(ItemStack armor) {
         CompoundTag tag = armor.getTag();
         if (tag == null) {
@@ -104,18 +111,27 @@ public class ArmorRepairKitItem extends Item {
         return original;
     }
 
+    /**
+     * 获取护甲累计衰减值
+     */
     public static int getArmorMaxReduction(ItemStack armor) {
         CompoundTag tag = armor.getTag();
         if (tag == null) return 0;
         return tag.getInt("BasMaxReduction");
     }
 
+    /**
+     * 获取护甲修复次数
+     */
     public static int getArmorRepairCount(ItemStack armor) {
         CompoundTag tag = armor.getTag();
         if (tag == null) return 0;
         return tag.getInt("BasRepairCount");
     }
 
+    /**
+     * 获取护甲当前最大耐久（考虑衰减）
+     */
     public static int getCurrentMaxDurability(ItemStack armor) {
         int original = getOriginalMaxDurability(armor);
         int reduction = getArmorMaxReduction(armor);
@@ -123,6 +139,9 @@ public class ArmorRepairKitItem extends Item {
         return Math.max(1, result);
     }
 
+    /**
+     * 核心修复逻辑
+     */
     private void doRepair(Level level, Player player, ItemStack kitStack) {
         Bullerproof_armor_system_mod.getLogger().info("========== 开始执行护甲修复 ==========");
         Bullerproof_armor_system_mod.getLogger().info("玩家: {}", player.getName().getString());
@@ -149,7 +168,7 @@ public class ArmorRepairKitItem extends Item {
         };
 
         for (net.minecraft.world.entity.EquipmentSlot slot : slots) {
-            ItemStack armorStack = player.getItemBySlot(slot);  // 使用 armorStack 而不是 armor
+            ItemStack armorStack = player.getItemBySlot(slot);
             if (!armorStack.isEmpty() && armorStack.getItem() instanceof net.minecraft.world.item.ArmorItem) {
                 String itemId = ForgeRegistries.ITEMS.getKey(armorStack.getItem()).toString();
                 int armorTier = org.ffg1124.bullerproof_armor_system_mod.command.ArmorTierManager.getArmorTier(itemId);
@@ -164,7 +183,7 @@ public class ArmorRepairKitItem extends Item {
                     // 允许修复已损坏的护甲
                     if (current < max) {
                         int need = max - current;
-                        targets.add(new RepairTarget(armorStack, need));  // 使用 armorStack
+                        targets.add(new RepairTarget(armorStack, need));
                         totalNeeded += need;
                         Bullerproof_armor_system_mod.getLogger().info("需要修复: {} 点", need);
                     }
@@ -180,7 +199,6 @@ public class ArmorRepairKitItem extends Item {
             if (armorTier > 0) {
                 int current = CustomDurabilityManager.getCurrentDurability(mainHand);
                 int max = getCurrentMaxDurability(mainHand);
-
                 if (current < max) {
                     int need = max - current;
                     targets.add(new RepairTarget(mainHand, need));
@@ -189,7 +207,7 @@ public class ArmorRepairKitItem extends Item {
             }
         }
 
-// 副手
+        // 副手
         ItemStack offHand = player.getOffhandItem();
         if (!offHand.isEmpty() && offHand.getItem() instanceof net.minecraft.world.item.ArmorItem && offHand != kitStack) {
             String itemId = ForgeRegistries.ITEMS.getKey(offHand.getItem()).toString();
@@ -197,7 +215,6 @@ public class ArmorRepairKitItem extends Item {
             if (armorTier > 0) {
                 int current = CustomDurabilityManager.getCurrentDurability(offHand);
                 int max = getCurrentMaxDurability(offHand);
-
                 if (current < max) {
                     int need = max - current;
                     targets.add(new RepairTarget(offHand, need));
@@ -206,20 +223,27 @@ public class ArmorRepairKitItem extends Item {
             }
         }
 
+        Bullerproof_armor_system_mod.getLogger().info("总计需要修复: {} 点耐久", totalNeeded);
+
         if (targets.isEmpty()) {
+            Bullerproof_armor_system_mod.getLogger().info("修复失败: 没有需要修复的护甲");
             player.sendSystemMessage(Component.literal("§c✗ 没有需要修复的护甲"));
             return;
         }
 
         int actualTotalRepair = Math.min(totalNeeded, availableDurability);
+        Bullerproof_armor_system_mod.getLogger().info("实际可修复: {} 点耐久", actualTotalRepair);
 
         if (actualTotalRepair <= 0) {
+            Bullerproof_armor_system_mod.getLogger().info("修复失败: 维修包已没有剩余耐久");
             player.sendSystemMessage(Component.literal("§c✗ 维修包已没有剩余耐久"));
             return;
         }
 
+        // 应用减速效果
         applySlowEffect(player);
 
+        // 执行修复
         int remainingRepair = actualTotalRepair;
         int totalRepaired = 0;
 
@@ -229,17 +253,25 @@ public class ArmorRepairKitItem extends Item {
             int repaired = repairArmorWithDegradation(target.armor, toRepair);
             totalRepaired += repaired;
             remainingRepair -= toRepair;
+            Bullerproof_armor_system_mod.getLogger().info("修复护甲: +{} 耐久", toRepair);
         }
 
+        // 扣除维修包耐久
         int newDamage = kitStack.getDamageValue() + actualTotalRepair;
         if (newDamage >= kitStack.getMaxDamage()) {
             kitStack.setDamageValue(kitStack.getMaxDamage());
+            Bullerproof_armor_system_mod.getLogger().info("维修包已耗尽耐久");
             player.sendSystemMessage(Component.literal("§c⚠ 维修包已耗尽耐久"));
         } else {
             kitStack.setDamageValue(newDamage);
+            Bullerproof_armor_system_mod.getLogger().info("维修包扣除耐久: {}", actualTotalRepair);
         }
 
         int remaining = kitStack.getMaxDamage() - kitStack.getDamageValue();
+
+        Bullerproof_armor_system_mod.getLogger().info("========== 修复完成 ==========");
+        Bullerproof_armor_system_mod.getLogger().info("总计修复: {} 点耐久", totalRepaired);
+        Bullerproof_armor_system_mod.getLogger().info("维修包剩余耐久: {}/{}", remaining, kitStack.getMaxDamage());
 
         if (actualTotalRepair < totalNeeded) {
             player.sendSystemMessage(Component.literal(
@@ -253,9 +285,13 @@ public class ArmorRepairKitItem extends Item {
             ));
         }
 
+        // 修复完成后移除缓慢效果
         player.removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
     }
 
+    /**
+     * 修复单件护甲并减少最大耐久
+     */
     private int repairArmorWithDegradation(ItemStack armor, int repairAmount) {
         CompoundTag tag = armor.getOrCreateTag();
 
@@ -276,38 +312,43 @@ public class ArmorRepairKitItem extends Item {
         tag.putInt("BasMaxReduction", newReduction);
         tag.putInt("BasRepairCount", repairCount + 1);
 
-        // 更新耐久
         int newDurability = currentDurability + toRepair;
         tag.putInt(CustomDurabilityManager.NBT_CUSTOM_DURABILITY, newDurability);
 
         // 如果修复后耐久大于0，清除损坏标记
         if (newDurability > 0) {
             tag.putBoolean(CustomDurabilityManager.NBT_IS_BROKEN, false);
-            Bullerproof_armor_system_mod.getLogger().info("护甲已修复，清除损坏标记");
         }
 
         return toRepair;
     }
 
+    /**
+     * 应用减速效果
+     */
     private void applySlowEffect(Player player) {
         int amplifier = Math.round((1.0f - tier.speedModifier) / 0.15f);
         amplifier = Math.max(0, Math.min(4, amplifier));
 
         MobEffectInstance slowEffect = new MobEffectInstance(
                 MobEffects.MOVEMENT_SLOWDOWN,
-                tier.requiredTicks,
+                tier.getRequiredTicks(),
                 amplifier,
                 false,
                 true
         );
         player.addEffect(slowEffect);
+        Bullerproof_armor_system_mod.getLogger().info("应用缓慢效果，等级: {}, 持续时间: {} ticks", amplifier, tier.getRequiredTicks());
     }
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack kitStack = player.getItemInHand(hand);
 
+        Bullerproof_armor_system_mod.getLogger().info("维修包使用 - 玩家: {}, 维修包等级: {}", player.getName().getString(), tier.name);
+
         if (kitStack.getDamageValue() >= kitStack.getMaxDamage()) {
+            Bullerproof_armor_system_mod.getLogger().info("维修包已损坏，无法使用");
             if (!level.isClientSide) {
                 player.sendSystemMessage(Component.literal("§c✗ 维修包已损坏，无法使用"));
             }
@@ -317,26 +358,12 @@ public class ArmorRepairKitItem extends Item {
         if (!Config.repairKitHoldToUse) {
             // ==================== 点击模式 ====================
             if (level.isClientSide) {
-                // 客户端：显示提示和动画
                 player.displayClientMessage(Component.literal(tier.color + "🔧 开始修复护甲..."), true);
                 player.swing(InteractionHand.MAIN_HAND);
             } else {
-                // 服务端：应用缓慢效果
-                Bullerproof_armor_system_mod.getLogger().info("点击模式 - 应用缓慢效果");
+                Bullerproof_armor_system_mod.getLogger().info("点击模式 - 应用缓慢效果并开始修复");
                 applySlowEffect(player);
-
-                // 延迟1秒后执行修复
-                new Thread(() -> {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException ignored) {}
-                    player.getServer().execute(() -> {
-                        doRepair(level, player, kitStack);
-                        // 修复完成后移除缓慢效果
-                        player.removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
-                        Bullerproof_armor_system_mod.getLogger().info("点击模式 - 修复完成，缓慢效果已移除");
-                    });
-                }).start();
+                doRepair(level, player, kitStack);
             }
             return InteractionResultHolder.sidedSuccess(kitStack, level.isClientSide);
         }
@@ -344,8 +371,9 @@ public class ArmorRepairKitItem extends Item {
         // ==================== 长按模式 ====================
         if (level.isClientSide) {
             startTimeMap.put(player.getUUID(), System.currentTimeMillis());
+            Bullerproof_armor_system_mod.getLogger().info("长按模式 - 开始计时, 需要 {} 秒", tier.getRequiredSeconds());
             player.displayClientMessage(Component.literal(
-                    tier.color + "🔧 长按 " + tier.requiredSeconds + " 秒修复护甲..."
+                    tier.color + "🔧 长按 " + tier.getRequiredSeconds() + " 秒修复护甲..."
             ), true);
             player.swing(InteractionHand.MAIN_HAND);
         }
@@ -359,51 +387,48 @@ public class ArmorRepairKitItem extends Item {
         if (!Config.repairKitHoldToUse) return;
         if (!(entity instanceof Player player)) return;
 
-        if (level.isClientSide) {
-            // 客户端：计算实际长按时间
-            Long startTime = startTimeMap.get(player.getUUID());
-            if (startTime != null) {
-                long elapsedMs = System.currentTimeMillis() - startTime;
-                boolean completed = elapsedMs >= tier.requiredSeconds * 1000;
-
-                Bullerproof_armor_system_mod.getLogger().info("客户端长按释放 - 需要: {} 秒, 实际: {} 毫秒, 完成: {}",
-                        tier.requiredSeconds, elapsedMs, completed);
-
-                if (completed) {
-                    // 告诉服务端执行修复（通过发送数据包的方式）
-                    // 简化：直接让服务端执行
-                    holdCompleteMap.put(player.getUUID(), true);
-                }
-                startTimeMap.remove(player.getUUID());
-            }
+        // 计算实际长按时间
+        Long startTime = startTimeMap.get(player.getUUID());
+        long elapsedMs = 0;
+        if (startTime != null) {
+            elapsedMs = System.currentTimeMillis() - startTime;
         }
 
+        Bullerproof_armor_system_mod.getLogger().info("========== 长按释放 ==========");
+        Bullerproof_armor_system_mod.getLogger().info("玩家: {}", player.getName().getString());
+        Bullerproof_armor_system_mod.getLogger().info("维修包等级: {}", tier.name);
+        Bullerproof_armor_system_mod.getLogger().info("需要长按: {} 秒", tier.getRequiredSeconds());
+        Bullerproof_armor_system_mod.getLogger().info("实际长按: {} 毫秒 ({} 秒)", elapsedMs, elapsedMs / 1000.0);
+        Bullerproof_armor_system_mod.getLogger().info("timeCharged: {} ticks", timeCharged);
+
         if (!level.isClientSide) {
-            // 服务端：检查是否完成
-            Boolean completed = holdCompleteMap.remove(player.getUUID());
-            if (completed != null && completed) {
-                Bullerproof_armor_system_mod.getLogger().info("服务端收到完成信号，执行修复");
+            if (elapsedMs >= tier.getRequiredSeconds() * 1000) {
+                Bullerproof_armor_system_mod.getLogger().info("长按时间足够，执行修复");
                 ItemStack kitStack = player.getMainHandItem();
                 if (kitStack.isEmpty() || !(kitStack.getItem() instanceof ArmorRepairKitItem)) {
                     kitStack = player.getOffhandItem();
                 }
                 if (!kitStack.isEmpty() && kitStack.getItem() instanceof ArmorRepairKitItem) {
+                    // 应用缓慢效果并修复
                     applySlowEffect(player);
                     doRepair(level, player, kitStack);
+                } else {
+                    Bullerproof_armor_system_mod.getLogger().warn("找不到维修包物品");
                 }
             } else {
-                Bullerproof_armor_system_mod.getLogger().info("长按未完成，取消修复");
-                player.displayClientMessage(Component.literal("§c✗ 修复取消"), true);
+                long remaining = (tier.getRequiredSeconds() * 1000) - elapsedMs;
+                Bullerproof_armor_system_mod.getLogger().info("长按时间不足，取消修复, 还需 {} 毫秒", remaining);
+                player.displayClientMessage(Component.literal("§c✗ 修复取消（还需 " + (remaining / 1000) + " 秒）"), true);
             }
         }
 
-        player.removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
+        startTimeMap.remove(player.getUUID());
     }
 
     @Override
     public int getUseDuration(ItemStack stack) {
         if (!Config.repairKitHoldToUse) return 0;
-        return 72000; // 很大的值，让物品可以长时间使用
+        return tier.getRequiredTicks();
     }
 
     @Override
@@ -417,18 +442,17 @@ public class ArmorRepairKitItem extends Item {
         if (!Config.repairKitHoldToUse) return;
         if (!(entity instanceof Player player)) return;
 
-        if (level.isClientSide) {
-            Long startTime = startTimeMap.get(player.getUUID());
-            if (startTime != null) {
-                long elapsedMs = System.currentTimeMillis() - startTime;
-                int percent = (int) (elapsedMs * 100 / (tier.requiredSeconds * 1000));
-                percent = Math.min(100, percent);
+        Long startTime = startTimeMap.get(player.getUUID());
+        if (startTime != null && level.isClientSide) {
+            long elapsedMs = System.currentTimeMillis() - startTime;
+            int requiredSeconds = tier.getRequiredSeconds();
+            int percent = (int) (elapsedMs * 100 / (requiredSeconds * 1000));
+            percent = Math.min(100, percent);
 
-                if (percent > 0 && percent % 10 == 0 && percent < 100) {
-                    player.displayClientMessage(Component.literal(
-                            tier.color + "🔧 修复进度: " + percent + "%"
-                    ), true);
-                }
+            if (percent > 0 && percent % 10 == 0 && percent < 100) {
+                player.displayClientMessage(Component.literal(
+                        tier.color + "🔧 修复进度: " + percent + "% (" + (elapsedMs / 1000) + "/" + requiredSeconds + "秒)"
+                ), true);
             }
         }
     }
@@ -446,7 +470,7 @@ public class ArmorRepairKitItem extends Item {
                     .append(Component.literal("长按右键使用，修复穿戴的护甲"))
                     .withStyle(ChatFormatting.GRAY));
             tooltip.add(Component.literal("")
-                    .append(Component.literal("长按时间: " + tier.requiredSeconds + " 秒"))
+                    .append(Component.literal("长按时间: " + tier.getRequiredSeconds() + " 秒"))
                     .withStyle(ChatFormatting.AQUA));
         } else {
             tooltip.add(Component.literal("")

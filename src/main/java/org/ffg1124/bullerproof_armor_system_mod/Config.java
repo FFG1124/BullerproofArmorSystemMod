@@ -119,6 +119,19 @@ public class Config {
             .comment("维修包使用方式: true=长按使用, false=点击使用")
             .define("repairKitHoldToUse", true);
 
+    // ========== 维修包长按时间配置 ==========
+    private static final ForgeConfigSpec.IntValue BASIC_REPAIR_TIME = BUILDER
+            .comment("初级维修包长按时间（秒）")
+            .defineInRange("basicRepairTime", 2, 1, 30);
+
+    private static final ForgeConfigSpec.IntValue MEDIUM_REPAIR_TIME = BUILDER
+            .comment("中级维修包长按时间（秒）")
+            .defineInRange("mediumRepairTime", 3, 1, 30);
+
+    private static final ForgeConfigSpec.IntValue ADVANCED_REPAIR_TIME = BUILDER
+            .comment("高级维修包长按时间（秒）")
+            .defineInRange("advancedRepairTime", 4, 1, 30);
+
     static final ForgeConfigSpec SPEC = BUILDER.build();
 
     // 默认值变量
@@ -145,6 +158,11 @@ public class Config {
 
     // ========== 维修包使用方式变量 ==========
     public static boolean repairKitHoldToUse = true;
+
+    // 变量声明
+    public static int basicRepairTime = 2;
+    public static int mediumRepairTime = 3;
+    public static int advancedRepairTime = 4;
 
     private static boolean validateItemName(final Object obj) {
         return obj instanceof final String itemName && ForgeRegistries.ITEMS.containsKey(new ResourceLocation(itemName));
@@ -213,12 +231,19 @@ public class Config {
             // ========== 加载维修包使用方式配置 ==========
             repairKitHoldToUse = REPAIR_KIT_HOLD_TO_USE.get();
 
+            basicRepairTime = BASIC_REPAIR_TIME.get();
+            mediumRepairTime = MEDIUM_REPAIR_TIME.get();
+            advancedRepairTime = ADVANCED_REPAIR_TIME.get();
+
             Bullerproof_armor_system_mod.getLogger().info("护甲耐久配置加载完成:");
             for (int i = 1; i <= 6; i++) {
                 Bullerproof_armor_system_mod.getLogger().info("  等级{}护甲: {}耐久", i, armorTierDurability[i]);
             }
             Bullerproof_armor_system_mod.getLogger().info("耐久损耗倍率: {}", durabilityLossMultiplier);
             Bullerproof_armor_system_mod.getLogger().info("维修包使用方式: {}", repairKitHoldToUse ? "长按" : "点击");
+
+            Bullerproof_armor_system_mod.getLogger().info("维修包时间配置: 初级={}秒, 中级={}秒, 高级={}秒",
+                    basicRepairTime, mediumRepairTime, advancedRepairTime);
 
         } catch (Exception e) {
             Bullerproof_armor_system_mod.getLogger().error("加载配置文件失败: {}", e.getMessage());
