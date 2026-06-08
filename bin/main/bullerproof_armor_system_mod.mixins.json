@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "org.ffg1124.bullerproof_armor_system_mod.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "bullerproof_armor_system_mod.refmap.json",
+  "mixins": [
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}
