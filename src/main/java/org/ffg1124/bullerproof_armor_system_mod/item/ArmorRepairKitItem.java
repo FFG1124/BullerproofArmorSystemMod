@@ -143,6 +143,9 @@ public class ArmorRepairKitItem extends Item {
      * 核心修复逻辑
      */
     private void doRepair(Level level, Player player, ItemStack kitStack) {
+        Bullerproof_armor_system_mod.getLogger().info("========================================");
+        Bullerproof_armor_system_mod.getLogger().info("doRepair 被调用！");
+        Bullerproof_armor_system_mod.getLogger().info("========================================");
         Bullerproof_armor_system_mod.getLogger().info("========== 开始执行护甲修复 ==========");
         Bullerproof_armor_system_mod.getLogger().info("玩家: {}", player.getName().getString());
         Bullerproof_armor_system_mod.getLogger().info("维修包等级: {}", tier.name);
@@ -384,41 +387,56 @@ public class ArmorRepairKitItem extends Item {
 
     @Override
     public void releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeCharged) {
-        if (!Config.repairKitHoldToUse) return;
-        if (!(entity instanceof Player player)) return;
+        Bullerproof_armor_system_mod.getLogger().info("========== releaseUsing 被调用 ==========");
 
-        // 计算实际长按时间
-        Long startTime = startTimeMap.get(player.getUUID());
-        long elapsedMs = 0;
-        if (startTime != null) {
-            elapsedMs = System.currentTimeMillis() - startTime;
+        if (!Config.repairKitHoldToUse) {
+            Bullerproof_armor_system_mod.getLogger().info("长按模式未启用，跳过");
+            return;
+        }
+        if (!(entity instanceof Player player)) {
+            Bullerproof_armor_system_mod.getLogger().info("entity 不是 Player");
+            return;
         }
 
-        Bullerproof_armor_system_mod.getLogger().info("========== 长按释放 ==========");
         Bullerproof_armor_system_mod.getLogger().info("玩家: {}", player.getName().getString());
         Bullerproof_armor_system_mod.getLogger().info("维修包等级: {}", tier.name);
-        Bullerproof_armor_system_mod.getLogger().info("需要长按: {} 秒", tier.getRequiredSeconds());
-        Bullerproof_armor_system_mod.getLogger().info("实际长按: {} 毫秒 ({} 秒)", elapsedMs, elapsedMs / 1000.0);
-        Bullerproof_armor_system_mod.getLogger().info("timeCharged: {} ticks", timeCharged);
+
+        // 计算实际使用时间
+        // 注意：timeCharged 是从 总时间 开始递减的，实际使用时间 = 总时间 - timeCharged
+        int totalTicks = getUseDuration(stack);
+        int usedTicks = totalTicks - timeCharged;
+        long requiredTicks = tier.getRequiredTicks();
+
+        // 但是上面的计算似乎有问题，直接使用原版参数计算
+        // 获取物品开始使用的时间
+        int useDuration = stack.getUseDuration();
+        int useTime = useDuration - timeCharged;
+
+        Bullerproof_armor_system_mod.getLogger().info("getUseDuration: {}, useDuration: {}, timeCharged: {}, useTime: {}",
+                totalTicks, useDuration, timeCharged, useTime);
+        Bullerproof_armor_system_mod.getLogger().info("需要 ticks: {}, 需要秒: {}", requiredTicks, tier.getRequiredSeconds());
 
         if (!level.isClientSide) {
-            if (elapsedMs >= tier.getRequiredSeconds() * 1000) {
-                Bullerproof_armor_system_mod.getLogger().info("长按时间足够，执行修复");
+            // 直接使用 useTime 来判断
+            if (useTime >= requiredTicks) {
+                Bullerproof_armor_system_mod.getLogger().info("长按完成！准备执行修复");
+
                 ItemStack kitStack = player.getMainHandItem();
                 if (kitStack.isEmpty() || !(kitStack.getItem() instanceof ArmorRepairKitItem)) {
                     kitStack = player.getOffhandItem();
                 }
+
                 if (!kitStack.isEmpty() && kitStack.getItem() instanceof ArmorRepairKitItem) {
-                    // 应用缓慢效果并修复
+                    Bullerproof_armor_system_mod.getLogger().info("找到维修包，调用 doRepair");
                     applySlowEffect(player);
                     doRepair(level, player, kitStack);
                 } else {
-                    Bullerproof_armor_system_mod.getLogger().warn("找不到维修包物品");
+                    Bullerproof_armor_system_mod.getLogger().warn("找不到维修包物品！");
                 }
             } else {
-                long remaining = (tier.getRequiredSeconds() * 1000) - elapsedMs;
-                Bullerproof_armor_system_mod.getLogger().info("长按时间不足，取消修复, 还需 {} 毫秒", remaining);
-                player.displayClientMessage(Component.literal("§c✗ 修复取消（还需 " + (remaining / 1000) + " 秒）"), true);
+                int remaining = (int)(requiredTicks - useTime);
+                Bullerproof_armor_system_mod.getLogger().info("长按时间不足，取消修复, 还需 {} ticks", remaining);
+                player.displayClientMessage(Component.literal("§c✗ 修复取消（还需 " + (remaining / 20) + " 秒）"), true);
             }
         }
 
@@ -428,7 +446,9 @@ public class ArmorRepairKitItem extends Item {
     @Override
     public int getUseDuration(ItemStack stack) {
         if (!Config.repairKitHoldToUse) return 0;
-        return tier.getRequiredTicks();
+        // 返回一个足够大的值，让玩家可以长按足够久
+        // 实际使用时间由 releaseUsing 中的 logic 判断
+        return Integer.MAX_VALUE;
     }
 
     @Override
@@ -442,16 +462,16 @@ public class ArmorRepairKitItem extends Item {
         if (!Config.repairKitHoldToUse) return;
         if (!(entity instanceof Player player)) return;
 
-        Long startTime = startTimeMap.get(player.getUUID());
-        if (startTime != null && level.isClientSide) {
-            long elapsedMs = System.currentTimeMillis() - startTime;
-            int requiredSeconds = tier.getRequiredSeconds();
-            int percent = (int) (elapsedMs * 100 / (requiredSeconds * 1000));
+        if (level.isClientSide) {
+            int totalTicks = getUseDuration(stack);
+            int usedTicks = totalTicks - remainingTicks;
+            int requiredTicks = tier.getRequiredTicks();
+            int percent = usedTicks * 100 / requiredTicks;
             percent = Math.min(100, percent);
 
             if (percent > 0 && percent % 10 == 0 && percent < 100) {
                 player.displayClientMessage(Component.literal(
-                        tier.color + "🔧 修复进度: " + percent + "% (" + (elapsedMs / 1000) + "/" + requiredSeconds + "秒)"
+                        tier.color + "🔧 修复进度: " + percent + "% (" + (usedTicks / 20) + "/" + (requiredTicks / 20) + "秒)"
                 ), true);
             }
         }
