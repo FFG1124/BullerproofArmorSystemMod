@@ -1,15 +1,16 @@
 package org.ffg1124.bullerproof_armor_system_mod.integration;
 
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraft.core.registries.BuiltInRegistries;
 import org.ffg1124.bullerproof_armor_system_mod.Bullerproof_armor_system_mod;
 import org.ffg1124.bullerproof_armor_system_mod.command.ArmorTierManager;
 import org.ffg1124.bullerproof_armor_system_mod.command.WeaponTierManager;
 
 import static org.ffg1124.bullerproof_armor_system_mod.command.GunTierManager.setGunTier;
 
-@Mod.EventBusSubscriber(modid = Bullerproof_armor_system_mod.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = Bullerproof_armor_system_mod.MODID, bus = EventBusSubscriber.Bus.MOD)
 public class VanillaDefaultConfig {
 
     @SubscribeEvent

@@ -9,6 +9,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -18,7 +19,6 @@ import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import org.ffg1124.bullerproof_armor_system_mod.Bullerproof_armor_system_mod;
 import org.ffg1124.bullerproof_armor_system_mod.ballistic.BallisticUtils;
@@ -192,7 +192,7 @@ public class BasCommand {
         if (stack.isEmpty()) return false;
 
         // 获取物品ID
-        String itemId = ForgeRegistries.ITEMS.getKey(stack.getItem()).toString();
+        String itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
 
         // ========== 直接通过模组命名空间判断 ==========
         // 所有模组的枪械，直接通过模组ID识别
@@ -259,7 +259,7 @@ public class BasCommand {
             return 0;
         }
 
-        String itemId = ForgeRegistries.ITEMS.getKey(handItem.getItem()).toString();
+        String itemId = BuiltInRegistries.ITEM.getKey(handItem.getItem()).toString();
         int tier = ArmorTierManager.getArmorTier(itemId);
         boolean isLocked = ArmorTierManager.isLocked(itemId);
 
@@ -293,7 +293,7 @@ public class BasCommand {
             return 0;
         }
 
-        String itemId = ForgeRegistries.ITEMS.getKey(handItem.getItem()).toString();
+        String itemId = BuiltInRegistries.ITEM.getKey(handItem.getItem()).toString();
         final int finalTier = tier;
         final String finalItemName = handItem.getDisplayName().getString();
         final String finalTierName = getTierName("armortier", tier);
@@ -343,7 +343,7 @@ public class BasCommand {
         }) {
             ItemStack armor = player.getItemBySlot(slot);
             if (!armor.isEmpty()) {
-                String id = ForgeRegistries.ITEMS.getKey(armor.getItem()).toString();
+                String id = BuiltInRegistries.ITEM.getKey(armor.getItem()).toString();
                 if (id.equals(armorId)) {
                     CustomDurabilityManager.initCustomDurability(armor, tier);
                 }
@@ -354,7 +354,7 @@ public class BasCommand {
         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
             ItemStack item = player.getInventory().getItem(i);
             if (!item.isEmpty()) {
-                String id = ForgeRegistries.ITEMS.getKey(item.getItem()).toString();
+                String id = BuiltInRegistries.ITEM.getKey(item.getItem()).toString();
                 if (id.equals(armorId)) {
                     CustomDurabilityManager.initCustomDurability(item, tier);
                 }
@@ -366,7 +366,7 @@ public class BasCommand {
      * 刷新所有在线玩家背包中的指定护甲耐久
      */
     private static void refreshAllPlayersArmorDurability(String armorId, int tier) {
-        var server = net.minecraftforge.server.ServerLifecycleHooks.getCurrentServer();
+        var server = net.neoforged.neoforge.server.ServerLifecycleHooks.getCurrentServer();
         if (server == null) return;
 
         for (var player : server.getPlayerList().getPlayers()) {
@@ -448,7 +448,7 @@ public class BasCommand {
         }
 
         String ammoId = BallisticUtils.getAmmoIdFromNBT(handItem);
-        String itemId = ForgeRegistries.ITEMS.getKey(handItem.getItem()).toString();
+        String itemId = BuiltInRegistries.ITEM.getKey(handItem.getItem()).toString();
         int tier = 0;
 
         if (ammoId != null && !ammoId.isEmpty()) {
@@ -496,7 +496,7 @@ public class BasCommand {
         }
 
         String ammoId = BallisticUtils.getAmmoIdFromNBT(handItem);
-        String configKey = (ammoId != null && !ammoId.isEmpty()) ? ammoId : ForgeRegistries.ITEMS.getKey(handItem.getItem()).toString();
+        String configKey = (ammoId != null && !ammoId.isEmpty()) ? ammoId : BuiltInRegistries.ITEM.getKey(handItem.getItem()).toString();
 
         final int finalTier = tier;
         final String finalItemName = handItem.getDisplayName().getString();
@@ -594,7 +594,7 @@ public class BasCommand {
             return 0;
         }
 
-        String itemId = ForgeRegistries.ITEMS.getKey(handItem.getItem()).toString();
+        String itemId = BuiltInRegistries.ITEM.getKey(handItem.getItem()).toString();
         int tier = WeaponTierManager.getWeaponTier(itemId);
         boolean isLocked = WeaponTierManager.isLocked(itemId);
 
@@ -629,7 +629,7 @@ public class BasCommand {
             return 0;
         }
 
-        String itemId = ForgeRegistries.ITEMS.getKey(handItem.getItem()).toString();
+        String itemId = BuiltInRegistries.ITEM.getKey(handItem.getItem()).toString();
 
         final int finalTier = tier;
         final String finalItemName = handItem.getDisplayName().getString();
@@ -727,7 +727,7 @@ public class BasCommand {
             return 0;
         }
 
-        String gunId = ForgeRegistries.ITEMS.getKey(handItem.getItem()).toString();
+        String gunId = BuiltInRegistries.ITEM.getKey(handItem.getItem()).toString();
 
         // ========== 改为警告而不是阻止 ==========
         if (!isRangedWeapon(handItem)) {
@@ -763,7 +763,7 @@ public class BasCommand {
             return 0;
         }
 
-        String gunId = ForgeRegistries.ITEMS.getKey(handItem.getItem()).toString();
+        String gunId = BuiltInRegistries.ITEM.getKey(handItem.getItem()).toString();
 
         // ========== 移除 TACZ 限制 ==========
         if (!isRangedWeapon(handItem)) {
@@ -898,7 +898,7 @@ public class BasCommand {
         for (int i = 0; i < slots.length; i++) {
             final int index = i;
             ItemStack armor = entity.getItemBySlot(slots[i]);
-            ResourceLocation armorKey = ForgeRegistries.ITEMS.getKey(armor.getItem());
+            ResourceLocation armorKey = BuiltInRegistries.ITEM.getKey(armor.getItem());
             int armorTier = 0;
             if (armorKey != null) {
                 armorTier = ArmorTierManager.getArmorTier(armorKey.toString());
@@ -1020,7 +1020,7 @@ public class BasCommand {
         }) {
             ItemStack armor = player.getItemBySlot(slot);
             if (!armor.isEmpty()) {
-                String itemId = ForgeRegistries.ITEMS.getKey(armor.getItem()).toString();
+                String itemId = BuiltInRegistries.ITEM.getKey(armor.getItem()).toString();
                 int tier = ArmorTierManager.getArmorTier(itemId);
                 if (tier > 0) {
                     CustomDurabilityManager.initCustomDurability(armor, tier);
@@ -1033,7 +1033,7 @@ public class BasCommand {
         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
             ItemStack item = player.getInventory().getItem(i);
             if (!item.isEmpty() && item.getItem() instanceof net.minecraft.world.item.ArmorItem) {
-                String itemId = ForgeRegistries.ITEMS.getKey(item.getItem()).toString();
+                String itemId = BuiltInRegistries.ITEM.getKey(item.getItem()).toString();
                 int tier = ArmorTierManager.getArmorTier(itemId);
                 if (tier > 0) {
                     CustomDurabilityManager.initCustomDurability(item, tier);

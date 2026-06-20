@@ -7,9 +7,9 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.ffg1124.bullerproof_armor_system_mod.ballistic.BallisticUtils;
 import org.ffg1124.bullerproof_armor_system_mod.command.AmmoTierManager;
 
@@ -85,7 +85,7 @@ public class AmmoConfigScreen extends Screen {
                         ": §e" + itemName + "§7 (" + Component.translatable("bullerproof_armor_system_mod.config.ammo_id").getString() +
                         ": §d" + ammoId + "§7) " + Component.translatable("bullerproof_armor_system_mod.config.current_tier").getString() + ": " + tierText;
             } else {
-                String itemId = ForgeRegistries.ITEMS.getKey(handItem.getItem()).toString();
+                String itemId = BuiltInRegistries.ITEM.getKey(handItem.getItem()).toString();
                 int currentTier = AmmoTierManager.getAmmoTier(itemId);
                 String tierText = currentTier > 0 ? "§aLv" + currentTier : "§c" +
                         Component.translatable("bullerproof_armor_system_mod.config.not_configured").getString();
@@ -133,7 +133,7 @@ public class AmmoConfigScreen extends Screen {
             configKey = ammoId;
             displayKey = Component.translatable("bullerproof_armor_system_mod.config.ammo_id").getString() + ": " + ammoId;
         } else {
-            configKey = ForgeRegistries.ITEMS.getKey(handItem.getItem()).toString();
+            configKey = BuiltInRegistries.ITEM.getKey(handItem.getItem()).toString();
             displayKey = handItem.getDisplayName().getString();
         }
 
@@ -163,7 +163,7 @@ public class AmmoConfigScreen extends Screen {
         if (ammoId != null && !ammoId.isEmpty()) {
             configKey = ammoId;
         } else {
-            configKey = ForgeRegistries.ITEMS.getKey(handItem.getItem()).toString();
+            configKey = BuiltInRegistries.ITEM.getKey(handItem.getItem()).toString();
         }
 
         if (AmmoTierManager.removeAmmoTier(configKey)) {
@@ -202,7 +202,7 @@ public class AmmoConfigScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(guiGraphics);
+        renderBackground(guiGraphics, mouseX, mouseY, partialTick);
 
         guiGraphics.drawCenteredString(font,
                 Component.translatable("bullerproof_armor_system_mod.config.ammo.title").getString(),

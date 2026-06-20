@@ -1,223 +1,98 @@
 package org.ffg1124.bullerproof_armor_system_mod;
 
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.config.ModConfigEvent;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-@Mod.EventBusSubscriber(modid = Bullerproof_armor_system_mod.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = Bullerproof_armor_system_mod.MODID, bus = EventBusSubscriber.Bus.MOD)
 public class Config {
-    private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
-
-    // ========== 原版配置 ==========
-    private static final ForgeConfigSpec.BooleanValue LOG_DIRT_BLOCK = BUILDER
-            .comment("是否在通用设置中记录泥土方块")
-            .define("logDirtBlock", true);
-
-    private static final ForgeConfigSpec.IntValue MAGIC_NUMBER = BUILDER
-            .comment("一个神奇的数字")
-            .defineInRange("magicNumber", 42, 0, Integer.MAX_VALUE);
-
-    public static final ForgeConfigSpec.ConfigValue<String> MAGIC_NUMBER_INTRODUCTION = BUILDER
-            .comment("神奇数字的介绍信息")
-            .define("magicNumberIntroduction", "神奇的数字是... ");
-
-    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> ITEM_STRINGS = BUILDER
-            .comment("需要在通用设置中记录的物品列表")
-            .defineListAllowEmpty("items", List.of("minecraft:iron_ingot"), Config::validateItemName);
+    private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
     // ========== 甲弹对抗系统配置 ==========
-    private static final ForgeConfigSpec.BooleanValue ENABLE_BALLISTIC_SYSTEM = BUILDER
+    private static final ModConfigSpec.BooleanValue ENABLE_BALLISTIC_SYSTEM = BUILDER
             .comment("启用弹道护甲穿透系统")
             .define("enableBallisticSystem", true);
 
-    private static final ForgeConfigSpec.BooleanValue ENABLE_TACZ_INTEGRATION = BUILDER
+    private static final ModConfigSpec.BooleanValue ENABLE_TACZ_INTEGRATION = BUILDER
             .comment("启用TACZ（永恒枪械工坊）模组集成")
             .define("enableTaczIntegration", true);
 
-    private static final ForgeConfigSpec.ConfigValue<String> TACZ_AMMO_MAPPING = BUILDER
-            .comment("TACZ弹药ID到等级的映射 (格式: 弹药ID:等级,弹药ID2:等级2)")
-            .define("taczAmmoMapping", "");
-
-    private static final ForgeConfigSpec.BooleanValue ENABLE_TIER_TOOLTIPS = BUILDER
+    private static final ModConfigSpec.BooleanValue ENABLE_TIER_TOOLTIPS = BUILDER
             .comment("启用物品的等级提示信息")
             .define("enableTierTooltips", true);
 
-    private static final ForgeConfigSpec.BooleanValue ENABLE_TIER_HUD = BUILDER
-            .comment("启用屏幕上的等级HUD显示")
-            .define("enableTierHud", true);
-
-    private static final ForgeConfigSpec.IntValue HUD_POSITION_X = BUILDER
-            .comment("HUD水平位置 (0-100, 0=左边, 100=右边)")
-            .defineInRange("hudPositionX", 90, 0, 100);
-
-    private static final ForgeConfigSpec.IntValue HUD_POSITION_Y = BUILDER
-            .comment("HUD垂直位置 (0-100, 0=顶部, 100=底部)")
-            .defineInRange("hudPositionY", 5, 0, 100);
-
-    private static final ForgeConfigSpec.BooleanValue SHOW_DETAILED_INFO = BUILDER
-            .comment("显示详细的数值信息")
-            .define("showDetailedInfo", true);
-
-    // ========== 弹药伤害倍率 ==========
-    private static final ForgeConfigSpec.DoubleValue TIER_1_DAMAGE_MULTIPLIER = BUILDER
-            .comment("1级弹药的穿透倍率")
-            .defineInRange("tier1DamageMultiplier", 1.0, 0.5, 3.0);
-    private static final ForgeConfigSpec.DoubleValue TIER_2_DAMAGE_MULTIPLIER = BUILDER
-            .comment("2级弹药的穿透倍率")
-            .defineInRange("tier2DamageMultiplier", 1.2, 0.5, 3.0);
-    private static final ForgeConfigSpec.DoubleValue TIER_3_DAMAGE_MULTIPLIER = BUILDER
-            .comment("3级弹药的穿透倍率")
-            .defineInRange("tier3DamageMultiplier", 1.5, 0.5, 3.0);
-    private static final ForgeConfigSpec.DoubleValue TIER_4_DAMAGE_MULTIPLIER = BUILDER
-            .comment("4级弹药的穿透倍率")
-            .defineInRange("tier4DamageMultiplier", 1.8, 0.5, 3.0);
-    private static final ForgeConfigSpec.DoubleValue TIER_5_DAMAGE_MULTIPLIER = BUILDER
-            .comment("5级弹药的穿透倍率")
-            .defineInRange("tier5DamageMultiplier", 2.2, 0.5, 3.0);
-    private static final ForgeConfigSpec.DoubleValue TIER_6_DAMAGE_MULTIPLIER = BUILDER
-            .comment("6级弹药的穿透倍率")
-            .defineInRange("tier6DamageMultiplier", 2.5, 0.5, 3.0);
-
     // ========== 护甲耐久配置 ==========
-    private static final ForgeConfigSpec.IntValue ARMOR_TIER_1_DURABILITY = BUILDER
+    private static final ModConfigSpec.IntValue ARMOR_TIER_1_DURABILITY = BUILDER
             .comment("1级护甲的最大耐久值")
             .defineInRange("armorTier1Durability", 200, 1, 10000);
-    private static final ForgeConfigSpec.IntValue ARMOR_TIER_2_DURABILITY = BUILDER
+
+    private static final ModConfigSpec.IntValue ARMOR_TIER_2_DURABILITY = BUILDER
             .comment("2级护甲的最大耐久值")
             .defineInRange("armorTier2Durability", 300, 1, 10000);
-    private static final ForgeConfigSpec.IntValue ARMOR_TIER_3_DURABILITY = BUILDER
+
+    private static final ModConfigSpec.IntValue ARMOR_TIER_3_DURABILITY = BUILDER
             .comment("3级护甲的最大耐久值")
             .defineInRange("armorTier3Durability", 400, 1, 10000);
-    private static final ForgeConfigSpec.IntValue ARMOR_TIER_4_DURABILITY = BUILDER
+
+    private static final ModConfigSpec.IntValue ARMOR_TIER_4_DURABILITY = BUILDER
             .comment("4级护甲的最大耐久值")
             .defineInRange("armorTier4Durability", 500, 1, 10000);
-    private static final ForgeConfigSpec.IntValue ARMOR_TIER_5_DURABILITY = BUILDER
+
+    private static final ModConfigSpec.IntValue ARMOR_TIER_5_DURABILITY = BUILDER
             .comment("5级护甲的最大耐久值")
             .defineInRange("armorTier5Durability", 700, 1, 10000);
-    private static final ForgeConfigSpec.IntValue ARMOR_TIER_6_DURABILITY = BUILDER
+
+    private static final ModConfigSpec.IntValue ARMOR_TIER_6_DURABILITY = BUILDER
             .comment("6级护甲的最大耐久值")
             .defineInRange("armorTier6Durability", 900, 1, 10000);
-    private static final ForgeConfigSpec.DoubleValue DURABILITY_LOSS_MULTIPLIER = BUILDER
+
+    private static final ModConfigSpec.DoubleValue DURABILITY_LOSS_MULTIPLIER = BUILDER
             .comment("耐久损耗倍率（1.0 = 1伤害 = 1耐久）")
             .defineInRange("durabilityLossMultiplier", 1.0, 0.0, 10.0);
-    private static final ForgeConfigSpec.BooleanValue ENABLE_CUSTOM_DURABILITY = BUILDER
+
+    private static final ModConfigSpec.BooleanValue ENABLE_CUSTOM_DURABILITY = BUILDER
             .comment("启用自定义耐久系统")
             .define("enableCustomDurability", true);
 
-    // ========== 维修包使用方式配置 ==========
-    private static final ForgeConfigSpec.BooleanValue REPAIR_KIT_HOLD_TO_USE = BUILDER
+    // ========== 维修包配置 ==========
+    private static final ModConfigSpec.BooleanValue REPAIR_KIT_HOLD_TO_USE = BUILDER
             .comment("维修包使用方式: true=长按使用, false=点击使用")
             .define("repairKitHoldToUse", true);
 
-    // ========== 维修包长按时间配置 ==========
-    private static final ForgeConfigSpec.IntValue BASIC_REPAIR_TIME = BUILDER
+    private static final ModConfigSpec.IntValue BASIC_REPAIR_TIME = BUILDER
             .comment("初级维修包长按时间（秒）")
             .defineInRange("basicRepairTime", 2, 1, 30);
 
-    private static final ForgeConfigSpec.IntValue MEDIUM_REPAIR_TIME = BUILDER
+    private static final ModConfigSpec.IntValue MEDIUM_REPAIR_TIME = BUILDER
             .comment("中级维修包长按时间（秒）")
             .defineInRange("mediumRepairTime", 3, 1, 30);
 
-    private static final ForgeConfigSpec.IntValue ADVANCED_REPAIR_TIME = BUILDER
+    private static final ModConfigSpec.IntValue ADVANCED_REPAIR_TIME = BUILDER
             .comment("高级维修包长按时间（秒）")
             .defineInRange("advancedRepairTime", 4, 1, 30);
 
-    static final ForgeConfigSpec SPEC = BUILDER.build();
+    static final ModConfigSpec SPEC = BUILDER.build();
 
     // 默认值变量
-    public static boolean logDirtBlock = true;
-    public static int magicNumber = 42;
-    public static String magicNumberIntroduction = "神奇的数字是... ";
-    public static Set<Item> items = Set.of();
-
     public static boolean enableBallisticSystem = true;
     public static boolean enableTaczIntegration = true;
-    public static Map<String, Integer> taczAmmoMapping = new HashMap<>();
-    public static float[] tierDamageMultipliers = new float[7];
-
     public static boolean enableTierTooltips = true;
-    public static boolean enableTierHud = true;
-    public static int hudPositionX = 90;
-    public static int hudPositionY = 5;
-    public static boolean showDetailedInfo = true;
-
-    // 耐久配置变量
     public static int[] armorTierDurability = new int[7];
     public static double durabilityLossMultiplier = 1.0;
     public static boolean enableCustomDurability = true;
-
-    // ========== 维修包使用方式变量 ==========
     public static boolean repairKitHoldToUse = true;
-
-    // 变量声明
     public static int basicRepairTime = 2;
     public static int mediumRepairTime = 3;
     public static int advancedRepairTime = 4;
 
-    private static boolean validateItemName(final Object obj) {
-        return obj instanceof final String itemName && ForgeRegistries.ITEMS.containsKey(new ResourceLocation(itemName));
-    }
-
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event) {
         try {
-            // 原版配置
-            logDirtBlock = LOG_DIRT_BLOCK.get();
-            magicNumber = MAGIC_NUMBER.get();
-            magicNumberIntroduction = MAGIC_NUMBER_INTRODUCTION.get();
-
-            enableTierTooltips = ENABLE_TIER_TOOLTIPS.get();
-            enableTierHud = ENABLE_TIER_HUD.get();
-            hudPositionX = HUD_POSITION_X.get();
-            hudPositionY = HUD_POSITION_Y.get();
-            showDetailedInfo = SHOW_DETAILED_INFO.get();
-
-            List<? extends String> itemStrings = ITEM_STRINGS.get();
-            if (itemStrings != null) {
-                items = itemStrings.stream()
-                        .map(itemName -> ForgeRegistries.ITEMS.getValue(new ResourceLocation(itemName)))
-                        .collect(Collectors.toSet());
-            }
-
             enableBallisticSystem = ENABLE_BALLISTIC_SYSTEM.get();
             enableTaczIntegration = ENABLE_TACZ_INTEGRATION.get();
+            enableTierTooltips = ENABLE_TIER_TOOLTIPS.get();
 
-            // 弹药倍率
-            tierDamageMultipliers[1] = TIER_1_DAMAGE_MULTIPLIER.get().floatValue();
-            tierDamageMultipliers[2] = TIER_2_DAMAGE_MULTIPLIER.get().floatValue();
-            tierDamageMultipliers[3] = TIER_3_DAMAGE_MULTIPLIER.get().floatValue();
-            tierDamageMultipliers[4] = TIER_4_DAMAGE_MULTIPLIER.get().floatValue();
-            tierDamageMultipliers[5] = TIER_5_DAMAGE_MULTIPLIER.get().floatValue();
-            tierDamageMultipliers[6] = TIER_6_DAMAGE_MULTIPLIER.get().floatValue();
-
-            // TACZ 映射
-            Map<String, Integer> newMapping = new HashMap<>();
-            String mappingStr = TACZ_AMMO_MAPPING.get();
-            if (mappingStr != null && !mappingStr.isEmpty()) {
-                for (String pair : mappingStr.split(",")) {
-                    String[] parts = pair.split(":");
-                    if (parts.length == 2) {
-                        try {
-                            newMapping.put(parts[0], Integer.parseInt(parts[1]));
-                        } catch (NumberFormatException e) {
-                            Bullerproof_armor_system_mod.getLogger().error("TACZ映射中无效的等级: {}", pair);
-                        }
-                    }
-                }
-            }
-            taczAmmoMapping = newMapping;
-
-            // 加载耐久配置
             enableCustomDurability = ENABLE_CUSTOM_DURABILITY.get();
             durabilityLossMultiplier = DURABILITY_LOSS_MULTIPLIER.get();
 
@@ -228,9 +103,7 @@ public class Config {
             armorTierDurability[5] = ARMOR_TIER_5_DURABILITY.get();
             armorTierDurability[6] = ARMOR_TIER_6_DURABILITY.get();
 
-            // ========== 加载维修包使用方式配置 ==========
             repairKitHoldToUse = REPAIR_KIT_HOLD_TO_USE.get();
-
             basicRepairTime = BASIC_REPAIR_TIME.get();
             mediumRepairTime = MEDIUM_REPAIR_TIME.get();
             advancedRepairTime = ADVANCED_REPAIR_TIME.get();
@@ -239,9 +112,7 @@ public class Config {
             for (int i = 1; i <= 6; i++) {
                 Bullerproof_armor_system_mod.getLogger().info("  等级{}护甲: {}耐久", i, armorTierDurability[i]);
             }
-            Bullerproof_armor_system_mod.getLogger().info("耐久损耗倍率: {}", durabilityLossMultiplier);
             Bullerproof_armor_system_mod.getLogger().info("维修包使用方式: {}", repairKitHoldToUse ? "长按" : "点击");
-
             Bullerproof_armor_system_mod.getLogger().info("维修包时间配置: 初级={}秒, 中级={}秒, 高级={}秒",
                     basicRepairTime, mediumRepairTime, advancedRepairTime);
 
@@ -250,7 +121,6 @@ public class Config {
         }
     }
 
-    // ========== 获取护甲耐久的方法 ==========
     public static int getArmorDurabilityByTier(int armorTier) {
         if (armorTier < 1 || armorTier > 6) return 500;
         return armorTierDurability[armorTier];

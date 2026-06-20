@@ -5,13 +5,15 @@ import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import org.ffg1124.bullerproof_armor_system_mod.Bullerproof_armor_system_mod;
 import org.ffg1124.bullerproof_armor_system_mod.command.WeaponTierManager;
 
-@Mod.EventBusSubscriber(modid = Bullerproof_armor_system_mod.MODID)
+@EventBusSubscriber(modid = Bullerproof_armor_system_mod.MODID)
 public class VanillaProjectileHandler {
 
     private static final boolean DEBUG = true;
@@ -25,7 +27,7 @@ public class VanillaProjectileHandler {
 
         // 弓的等级传递给箭矢
         if (weapon.getItem() instanceof BowItem || weapon.getItem() instanceof CrossbowItem) {
-            String weaponId = net.minecraftforge.registries.ForgeRegistries.ITEMS.getKey(weapon.getItem()).toString();
+            String weaponId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(weapon.getItem()).toString();
             int weaponTier = WeaponTierManager.getWeaponTier(weaponId);
 
             if (weaponTier > 0) {

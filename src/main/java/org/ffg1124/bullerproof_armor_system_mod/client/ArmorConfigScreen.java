@@ -7,9 +7,9 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.ffg1124.bullerproof_armor_system_mod.command.ArmorTierManager;
 import org.ffg1124.bullerproof_armor_system_mod.durability.CustomDurabilityManager;
 
@@ -75,7 +75,7 @@ public class ArmorConfigScreen extends Screen {
                     Component.translatable("bullerproof_armor_system_mod.config.no_item").getString();
         } else {
             String itemName = handItem.getDisplayName().getString();
-            String itemId = ForgeRegistries.ITEMS.getKey(handItem.getItem()).toString();
+            String itemId = BuiltInRegistries.ITEM.getKey(handItem.getItem()).toString();
             int currentTier = ArmorTierManager.getArmorTier(itemId);
             String tierText = currentTier > 0 ? "§aLv" + currentTier : "§c" +
                     Component.translatable("bullerproof_armor_system_mod.config.not_configured").getString();
@@ -114,7 +114,7 @@ public class ArmorConfigScreen extends Screen {
             return;
         }
 
-        String itemId = ForgeRegistries.ITEMS.getKey(handItem.getItem()).toString();
+        String itemId = BuiltInRegistries.ITEM.getKey(handItem.getItem()).toString();
         if (ArmorTierManager.setArmorTier(itemId, tier)) {
             statusMessage = "§a" + String.format(Component.translatable("bullerproof_armor_system_mod.config.set_success").getString(),
                     handItem.getDisplayName().getString(), tier);
@@ -141,7 +141,7 @@ public class ArmorConfigScreen extends Screen {
             return;
         }
 
-        String itemId = ForgeRegistries.ITEMS.getKey(handItem.getItem()).toString();
+        String itemId = BuiltInRegistries.ITEM.getKey(handItem.getItem()).toString();
         if (ArmorTierManager.removeArmorTier(itemId)) {
             statusMessage = "§a" + String.format(Component.translatable("bullerproof_armor_system_mod.config.remove_success").getString(),
                     handItem.getDisplayName().getString());
@@ -178,7 +178,7 @@ public class ArmorConfigScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(guiGraphics);
+        renderBackground(guiGraphics, mouseX, mouseY, partialTick);
 
         guiGraphics.drawCenteredString(font,
                 Component.translatable("bullerproof_armor_system_mod.config.armor.title").getString(),

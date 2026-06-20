@@ -1,15 +1,16 @@
 package org.ffg1124.bullerproof_armor_system_mod.ballistic;
 
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ArmorItem;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ItemStack;
 import org.ffg1124.bullerproof_armor_system_mod.Bullerproof_armor_system_mod;
-import org.ffg1124.bullerproof_armor_system_mod.command.ArmorTierManager;
 import org.ffg1124.bullerproof_armor_system_mod.command.AmmoTierManager;
+import org.ffg1124.bullerproof_armor_system_mod.command.ArmorTierManager;
+import org.ffg1124.bullerproof_armor_system_mod.util.PlatformHelper;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -19,11 +20,9 @@ public class BallisticUtils {
     private static final String NBT_AMMO_ID = "AmmoId";
     private static final Set<String> processedAmmoIds = new HashSet<>();
 
-    // ==================== AmmoId NBT处理 ====================
-
     public static String getAmmoIdFromNBT(ItemStack stack) {
         if (stack.isEmpty()) return null;
-        CompoundTag tag = stack.getTag();
+        CompoundTag tag = PlatformHelper.getTag(stack);
         if (tag != null && tag.contains(NBT_AMMO_ID)) {
             return tag.getString(NBT_AMMO_ID);
         }
@@ -59,11 +58,9 @@ public class BallisticUtils {
 
         int syncedCount = 0;
 
-        // 扫描主手
         String ammoId = getAmmoIdFromNBT(entity.getMainHandItem());
         if (ammoId != null && syncAmmoIdToConfig(ammoId, entity.getMainHandItem())) syncedCount++;
 
-        // 扫描副手
         ammoId = getAmmoIdFromNBT(entity.getOffhandItem());
         if (ammoId != null && syncAmmoIdToConfig(ammoId, entity.getOffhandItem())) syncedCount++;
 
@@ -76,12 +73,9 @@ public class BallisticUtils {
         processedAmmoIds.clear();
     }
 
-    // ==================== 等级获取方法 ====================
-
     public static int getAmmoTierFromItem(ItemStack stack) {
         if (stack.isEmpty()) return 0;
 
-        // 优先检查NBT中的AmmoId
         String ammoId = getAmmoIdFromNBT(stack);
         if (ammoId != null && !ammoId.isEmpty()) {
             syncAmmoIdToConfig(ammoId, stack);
@@ -91,16 +85,14 @@ public class BallisticUtils {
             }
         }
 
-        // 检查物品本身是否配置了弹药等级
-        ResourceLocation itemId = ForgeRegistries.ITEMS.getKey(stack.getItem());
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
         if (itemId == null) return 0;
         String id = itemId.toString();
 
-        // 先检查TACZ类弹药（内置默认值）
         if (id.startsWith("tacz:")) {
             int tier = AmmoTierManager.getAmmoTier(id);
             if (tier > 0) return tier;
-            return 1; // TACZ弹药默认1级
+            return 1;
         }
 
         return AmmoTierManager.getAmmoTier(id);
@@ -109,14 +101,12 @@ public class BallisticUtils {
     public static int getArmorTierFromItem(ItemStack stack) {
         if (stack.isEmpty()) return 0;
 
-        ResourceLocation itemId = ForgeRegistries.ITEMS.getKey(stack.getItem());
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
         if (itemId == null) return 0;
         String id = itemId.toString();
 
         return ArmorTierManager.getArmorTier(id);
     }
-
-    // ==================== 护甲防护计算 ====================
 
     public static float getArmorDamageReduction(int armorTier) {
         if (armorTier <= 0) return 0f;
@@ -138,17 +128,12 @@ public class BallisticUtils {
     }
 
     public static ItemStack getArmorForBodyPart(LivingEntity entity, String bodyPart) {
-        switch (bodyPart.toLowerCase()) {
-            case "head":
-                return entity.getItemBySlot(EquipmentSlot.HEAD);
-            case "chest":
-                return entity.getItemBySlot(EquipmentSlot.CHEST);
-            case "legs":
-                return entity.getItemBySlot(EquipmentSlot.LEGS);
-            case "feet":
-                return entity.getItemBySlot(EquipmentSlot.FEET);
-            default:
-                return ItemStack.EMPTY;
-        }
+        return switch (bodyPart.toLowerCase()) {
+            case "head" -> entity.getItemBySlot(EquipmentSlot.HEAD);
+            case "chest" -> entity.getItemBySlot(EquipmentSlot.CHEST);
+            case "legs" -> entity.getItemBySlot(EquipmentSlot.LEGS);
+            case "feet" -> entity.getItemBySlot(EquipmentSlot.FEET);
+            default -> ItemStack.EMPTY;
+        };
     }
 }

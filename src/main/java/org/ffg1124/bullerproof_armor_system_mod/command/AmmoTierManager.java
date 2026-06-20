@@ -4,8 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.fml.loading.FMLPaths;
+import net.minecraft.core.registries.BuiltInRegistries;
 import org.ffg1124.bullerproof_armor_system_mod.Bullerproof_armor_system_mod;
 
 import java.io.IOException;
@@ -129,7 +129,7 @@ public class AmmoTierManager {
 
     public static int getAmmoTier(Item item) {
         if (item == null) return 0;
-        ResourceLocation key = ForgeRegistries.ITEMS.getKey(item);
+        ResourceLocation key = BuiltInRegistries.ITEM.getKey(item);
         if (key == null) return 0;
         return getAmmoTier(key.toString());
     }

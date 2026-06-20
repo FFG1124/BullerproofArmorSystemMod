@@ -1,6 +1,7 @@
 package org.ffg1124.bullerproof_armor_system_mod.item;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -14,10 +15,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.ffg1124.bullerproof_armor_system_mod.Bullerproof_armor_system_mod;
 import org.ffg1124.bullerproof_armor_system_mod.Config;
 import org.ffg1124.bullerproof_armor_system_mod.durability.CustomDurabilityManager;
+import org.ffg1124.bullerproof_armor_system_mod.util.PlatformHelper;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -25,6 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+// 移除静态导入，直接使用 PlatformHelper
 
 public class ArmorRepairKitItem extends Item {
 
@@ -50,7 +53,6 @@ public class ArmorRepairKitItem extends Item {
             this.speedModifier = speedModifier;
         }
 
-        // 获取实际长按时间（秒）- 从配置读取
         public int getRequiredSeconds() {
             switch (this) {
                 case BASIC: return Config.basicRepairTime;
@@ -97,16 +99,19 @@ public class ArmorRepairKitItem extends Item {
      * 获取护甲原始最大耐久
      */
     public static int getOriginalMaxDurability(ItemStack armor) {
-        CompoundTag tag = armor.getTag();
-        if (tag == null) {
+        CompoundTag tag = PlatformHelper.getTag(armor);
+        if (tag == null || tag.isEmpty()) {
             int max = CustomDurabilityManager.getMaxDurability(armor);
-            armor.getOrCreateTag().putInt("BasOriginalMax", max);
+            CompoundTag newTag = new CompoundTag();
+            newTag.putInt("BasOriginalMax", max);
+            PlatformHelper.setTag(armor, newTag);
             return max;
         }
         int original = tag.getInt("BasOriginalMax");
         if (original <= 0) {
             original = CustomDurabilityManager.getMaxDurability(armor);
             tag.putInt("BasOriginalMax", original);
+            PlatformHelper.setTag(armor, tag);
         }
         return original;
     }
@@ -115,7 +120,7 @@ public class ArmorRepairKitItem extends Item {
      * 获取护甲累计衰减值
      */
     public static int getArmorMaxReduction(ItemStack armor) {
-        CompoundTag tag = armor.getTag();
+        CompoundTag tag = PlatformHelper.getTag(armor);
         if (tag == null) return 0;
         return tag.getInt("BasMaxReduction");
     }
@@ -124,7 +129,7 @@ public class ArmorRepairKitItem extends Item {
      * 获取护甲修复次数
      */
     public static int getArmorRepairCount(ItemStack armor) {
-        CompoundTag tag = armor.getTag();
+        CompoundTag tag = PlatformHelper.getTag(armor);
         if (tag == null) return 0;
         return tag.getInt("BasRepairCount");
     }
@@ -173,7 +178,7 @@ public class ArmorRepairKitItem extends Item {
         for (net.minecraft.world.entity.EquipmentSlot slot : slots) {
             ItemStack armorStack = player.getItemBySlot(slot);
             if (!armorStack.isEmpty() && armorStack.getItem() instanceof net.minecraft.world.item.ArmorItem) {
-                String itemId = ForgeRegistries.ITEMS.getKey(armorStack.getItem()).toString();
+                String itemId = BuiltInRegistries.ITEM.getKey(armorStack.getItem()).toString();
                 int armorTier = org.ffg1124.bullerproof_armor_system_mod.command.ArmorTierManager.getArmorTier(itemId);
                 if (armorTier > 0) {
                     int current = CustomDurabilityManager.getCurrentDurability(armorStack);
@@ -183,7 +188,6 @@ public class ArmorRepairKitItem extends Item {
                     Bullerproof_armor_system_mod.getLogger().info("检查护甲: {} - 当前耐久: {}, 最大耐久: {}, 已损坏: {}",
                             armorStack.getDisplayName().getString(), current, max, isBroken);
 
-                    // 允许修复已损坏的护甲
                     if (current < max) {
                         int need = max - current;
                         targets.add(new RepairTarget(armorStack, need));
@@ -197,7 +201,7 @@ public class ArmorRepairKitItem extends Item {
         // 主手
         ItemStack mainHand = player.getMainHandItem();
         if (!mainHand.isEmpty() && mainHand.getItem() instanceof net.minecraft.world.item.ArmorItem && mainHand != kitStack) {
-            String itemId = ForgeRegistries.ITEMS.getKey(mainHand.getItem()).toString();
+            String itemId = BuiltInRegistries.ITEM.getKey(mainHand.getItem()).toString();
             int armorTier = org.ffg1124.bullerproof_armor_system_mod.command.ArmorTierManager.getArmorTier(itemId);
             if (armorTier > 0) {
                 int current = CustomDurabilityManager.getCurrentDurability(mainHand);
@@ -213,7 +217,7 @@ public class ArmorRepairKitItem extends Item {
         // 副手
         ItemStack offHand = player.getOffhandItem();
         if (!offHand.isEmpty() && offHand.getItem() instanceof net.minecraft.world.item.ArmorItem && offHand != kitStack) {
-            String itemId = ForgeRegistries.ITEMS.getKey(offHand.getItem()).toString();
+            String itemId = BuiltInRegistries.ITEM.getKey(offHand.getItem()).toString();
             int armorTier = org.ffg1124.bullerproof_armor_system_mod.command.ArmorTierManager.getArmorTier(itemId);
             if (armorTier > 0) {
                 int current = CustomDurabilityManager.getCurrentDurability(offHand);
@@ -296,7 +300,7 @@ public class ArmorRepairKitItem extends Item {
      * 修复单件护甲并减少最大耐久
      */
     private int repairArmorWithDegradation(ItemStack armor, int repairAmount) {
-        CompoundTag tag = armor.getOrCreateTag();
+        CompoundTag tag = PlatformHelper.getOrCreateTag(armor);
 
         int originalMax = getOriginalMaxDurability(armor);
         int currentReduction = tag.getInt("BasMaxReduction");
@@ -318,11 +322,11 @@ public class ArmorRepairKitItem extends Item {
         int newDurability = currentDurability + toRepair;
         tag.putInt(CustomDurabilityManager.NBT_CUSTOM_DURABILITY, newDurability);
 
-        // 如果修复后耐久大于0，清除损坏标记
         if (newDurability > 0) {
             tag.putBoolean(CustomDurabilityManager.NBT_IS_BROKEN, false);
         }
 
+        PlatformHelper.setTag(armor, tag);
         return toRepair;
     }
 
@@ -358,6 +362,7 @@ public class ArmorRepairKitItem extends Item {
             return InteractionResultHolder.fail(kitStack);
         }
 
+        // 默认使用长按模式（Config.repairKitHoldToUse 默认为 true）
         if (!Config.repairKitHoldToUse) {
             // ==================== 点击模式 ====================
             if (level.isClientSide) {
@@ -371,7 +376,7 @@ public class ArmorRepairKitItem extends Item {
             return InteractionResultHolder.sidedSuccess(kitStack, level.isClientSide);
         }
 
-        // ==================== 长按模式 ====================
+        // ==================== 长按模式（默认） ====================
         if (level.isClientSide) {
             startTimeMap.put(player.getUUID(), System.currentTimeMillis());
             Bullerproof_armor_system_mod.getLogger().info("长按模式 - 开始计时, 需要 {} 秒", tier.getRequiredSeconds());
@@ -401,23 +406,15 @@ public class ArmorRepairKitItem extends Item {
         Bullerproof_armor_system_mod.getLogger().info("玩家: {}", player.getName().getString());
         Bullerproof_armor_system_mod.getLogger().info("维修包等级: {}", tier.name);
 
-        // 计算实际使用时间
-        // 注意：timeCharged 是从 总时间 开始递减的，实际使用时间 = 总时间 - timeCharged
-        int totalTicks = getUseDuration(stack);
-        int usedTicks = totalTicks - timeCharged;
+        int useDuration = stack.getUseDuration(entity);
+        int useTime = useDuration - timeCharged;
         long requiredTicks = tier.getRequiredTicks();
 
-        // 但是上面的计算似乎有问题，直接使用原版参数计算
-        // 获取物品开始使用的时间
-        int useDuration = stack.getUseDuration();
-        int useTime = useDuration - timeCharged;
-
-        Bullerproof_armor_system_mod.getLogger().info("getUseDuration: {}, useDuration: {}, timeCharged: {}, useTime: {}",
-                totalTicks, useDuration, timeCharged, useTime);
+        Bullerproof_armor_system_mod.getLogger().info("useDuration: {}, timeCharged: {}, useTime: {}",
+                useDuration, timeCharged, useTime);
         Bullerproof_armor_system_mod.getLogger().info("需要 ticks: {}, 需要秒: {}", requiredTicks, tier.getRequiredSeconds());
 
         if (!level.isClientSide) {
-            // 直接使用 useTime 来判断
             if (useTime >= requiredTicks) {
                 Bullerproof_armor_system_mod.getLogger().info("长按完成！准备执行修复");
 
@@ -444,10 +441,8 @@ public class ArmorRepairKitItem extends Item {
     }
 
     @Override
-    public int getUseDuration(ItemStack stack) {
+    public int getUseDuration(ItemStack stack, LivingEntity entity) {
         if (!Config.repairKitHoldToUse) return 0;
-        // 返回一个足够大的值，让玩家可以长按足够久
-        // 实际使用时间由 releaseUsing 中的 logic 判断
         return Integer.MAX_VALUE;
     }
 
@@ -463,7 +458,7 @@ public class ArmorRepairKitItem extends Item {
         if (!(entity instanceof Player player)) return;
 
         if (level.isClientSide) {
-            int totalTicks = getUseDuration(stack);
+            int totalTicks = getUseDuration(stack, entity);
             int usedTicks = totalTicks - remainingTicks;
             int requiredTicks = tier.getRequiredTicks();
             int percent = usedTicks * 100 / requiredTicks;
@@ -477,7 +472,6 @@ public class ArmorRepairKitItem extends Item {
         }
     }
 
-    @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         int currentDurability = stack.getMaxDamage() - stack.getDamageValue();
         int maxDurability = stack.getMaxDamage();

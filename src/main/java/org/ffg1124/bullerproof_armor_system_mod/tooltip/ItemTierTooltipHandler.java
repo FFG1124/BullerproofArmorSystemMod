@@ -1,6 +1,7 @@
 package org.ffg1124.bullerproof_armor_system_mod.tooltip;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ArmorItem;
@@ -10,10 +11,10 @@ import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.TridentItem;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.event.entity.player.ItemTooltipEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import org.ffg1124.bullerproof_armor_system_mod.Bullerproof_armor_system_mod;
 import org.ffg1124.bullerproof_armor_system_mod.ballistic.BallisticUtils;
 import org.ffg1124.bullerproof_armor_system_mod.command.AmmoTierManager;
@@ -24,7 +25,7 @@ import org.ffg1124.bullerproof_armor_system_mod.item.ArmorRepairKitItem;
 
 import java.util.List;
 
-@Mod.EventBusSubscriber(modid = Bullerproof_armor_system_mod.MODID)
+@EventBusSubscriber(modid = Bullerproof_armor_system_mod.MODID)
 public class ItemTierTooltipHandler {
 
     @SubscribeEvent
@@ -33,7 +34,7 @@ public class ItemTierTooltipHandler {
         if (stack.isEmpty()) return;
 
         List<Component> tooltip = event.getToolTip();
-        ResourceLocation itemKey = ForgeRegistries.ITEMS.getKey(stack.getItem());
+        ResourceLocation itemKey = BuiltInRegistries.ITEM.getKey(stack.getItem());
         if (itemKey == null) return;
         String itemId = itemKey.toString();
 
